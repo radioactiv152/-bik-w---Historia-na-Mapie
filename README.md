@@ -26,6 +26,12 @@ python3 -m http.server 8000
 
 Wymagany dostęp do internetu (Leaflet i czcionki ładowane z CDN, kafelki map z zewnętrznych serwerów).
 
+## Trasy spacerowe
+
+Pięć tras tematycznych (dane `ROUTES` w `index.html`). Przebieg po ulicach został wyznaczony raz
+serwisem OSRM (profil pieszy, dane OpenStreetMap) i zapisany w pliku, więc strona nie korzysta
+z żadnej usługi routingu w czasie działania.
+
 ## Zdjęcia
 
 Folder `img/` zawiera wyłącznie historyczne fotografie (sprzed 1990 r.) w domenie publicznej,
