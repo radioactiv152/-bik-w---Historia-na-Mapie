@@ -581,11 +581,12 @@
     mapEl.classList.remove('tiles-dark', 'tiles-vintage');
     if (st.cls) mapEl.classList.add(st.cls);
     mapStyle = key;
-    $('style-name').textContent = st.name.toUpperCase();
-    $('style-sw').style.background = st.swatch;
-    document.querySelectorAll('#sm-maps button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.map === key)); });
-    $('sat-btn').setAttribute('aria-pressed', String(key === 'satelita'));
     if (key !== 'satelita') lastNonSat = key;
+    var shown = MAP_STYLES[lastNonSat];
+    $('style-name').textContent = shown.name.toUpperCase();
+    $('style-sw').style.background = shown.swatch;
+    document.querySelectorAll('#sm-maps button').forEach(function(b){ b.setAttribute('aria-pressed', String(key !== 'satelita' && b.dataset.map === key)); });
+    $('sat-btn').setAttribute('aria-pressed', String(key === 'satelita'));
     store('zbikow-map', key);
   }
   function setTheme(key){
@@ -596,7 +597,8 @@
     store('zbikow-theme', key);
     if (typeof activeRoute !== 'undefined' && activeRoute) drawRoute(activeRoute);
   }
-  $('sm-maps').innerHTML = Object.keys(MAP_STYLES).map(function(k){
+  // Satellite has its own toggle button, so the menu lists only the drawn map styles.
+  $('sm-maps').innerHTML = Object.keys(MAP_STYLES).filter(function(k){ return k !== 'satelita'; }).map(function(k){
     return '<button data-map="' + k + '" role="menuitemradio"><span class="sw" style="background:' + MAP_STYLES[k].swatch + '"></span>' + MAP_STYLES[k].name + '</button>';
   }).join('');
   $('sm-themes').innerHTML = Object.keys(THEMES).map(function(k){
