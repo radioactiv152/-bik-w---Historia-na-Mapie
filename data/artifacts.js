@@ -62,7 +62,7 @@ window.ZBIKOW.artifacts = {
   {
    "kind": "produkcja",
    "name": "Pilniki",
-   "desc": "Fabryka Hoserów „Hossyb” produkowała pilniki.",
+   "desc": "Fabryka Henryka Hosera „Hossyb” produkowała pilniki; od 1900 r. pracowała z turbiną parową i zatrudniała ok. 150 osób.",
    "date": "od 1900 r.–?",
    "source": "Skwara / Kaleta",
    "sourceUrl": "",
@@ -121,6 +121,26 @@ window.ZBIKOW.artifacts = {
    "date": "okres międzywojenny; co najmniej lata 30. XX w.–1955",
    "source": "Muzeum Dulag 121 – „Cegielnia Trojanówka” / „Na wycieczkę 1: Pętla Szczepkowskiego”",
    "sourceUrl": "",
+   "images": []
+  }
+ ],
+ "219": [
+  {
+   "kind": "produkcja",
+   "name": "Prodiże elektryczne",
+   "desc": "Prodiż – elektryczny „mini-piekarnik” z okienkiem w pokrywie, jeden z najbardziej rozpoznawalnych sprzętów kuchennych PRL – produkowany w Pruszkowie przez „Prumel”.",
+   "date": "od czasów PRL–obecnie",
+   "source": "prumel.com.pl",
+   "sourceUrl": "http://prumel.com.pl/",
+   "images": []
+  },
+  {
+   "kind": "produkcja",
+   "name": "Sokowniki",
+   "desc": "Obok prodiży zakład produkował sokowniki do domowego wyrobu soków.",
+   "date": "od czasów PRL–obecnie",
+   "source": "prumel.com.pl",
+   "sourceUrl": "http://prumel.com.pl/",
    "images": []
   }
  ]

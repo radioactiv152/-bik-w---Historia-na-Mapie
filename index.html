@@ -242,6 +242,7 @@
   @keyframes featGlow{0%,100%{box-shadow:0 0 0 0 rgba(var(--accent-rgb),0)}50%{box-shadow:0 0 0 5px rgba(var(--accent-rgb),0.16)}}
   .marker-pin.has-feat::after{content:"";position:absolute;width:8px;height:8px;border-radius:50%;background:var(--ok);border:1.5px solid var(--pin-ring);transform:translate(7px,-7px)}
   .marker-pin{position:relative}
+  .marker-pin.approx::before{content:"";position:absolute;width:22px;height:22px;border-radius:50%;border:1.5px dashed var(--pin-ring);opacity:.9}
 
   /* War layers (I / II wojna światowa) */
   .war-pin{width:26px;height:26px;display:flex;align-items:center;justify-content:center}
@@ -707,6 +708,7 @@
     <h4>Legenda</h4>
     <ul class="legend">
       <li><span class="sw"><span class="marker-pin"><i></i></span></span>Pojedynczy obiekt pod dokładnym współczesnym adresem</li>
+      <li><span class="sw"><span class="marker-pin approx"><i></i></span></span>Lokalizacja przybliżona (skrzyżowanie, teren zakładu, rejon) — szczegóły w karcie</li>
       <li><span class="sw"><span class="marker-group">3</span></span>Kilka obiektów pod jednym adresem — kliknij, aby rozłożyć na osobne punkty</li>
       <li><span class="sw"><span class="cluster"><span>12</span></span></span>Skupisko punktów — przybliż, aby rozdzielić</li>
       <li><span class="sw"><span class="badge conf-wysoka"><span class="dot"></span></span></span>Pewność informacji: <span style="color:var(--ok)">wysoka</span> · <span style="color:var(--mid)">średnia</span> · <span style="color:var(--low)">niska</span></li>
@@ -910,8 +912,8 @@
 
   // --- Markers: one per historical record. Records that share an address sit on the same point;
   // the cluster layer shows them as one red numbered marker and fans them out ("spiderfy") on click.
-  function pinIcon(hasPh, hasFeat){
-    return L.divIcon({ className: '', html: '<div class="marker-pin' + (hasPh ? ' has-photo' : '') + (hasFeat ? ' has-feat' : '') + '"><i></i></div>', iconSize: [24,24], iconAnchor: [12,12] });
+  function pinIcon(hasPh, hasFeat, approx){
+    return L.divIcon({ className: '', html: '<div class="marker-pin' + (hasPh ? ' has-photo' : '') + (hasFeat ? ' has-feat' : '') + (approx ? ' approx' : '') + '"><i></i></div>', iconSize: [24,24], iconAnchor: [12,12] });
   }
   function groupIcon(n){
     return L.divIcon({ className: '', html: '<div class="marker-group">' + n + '</div>', iconSize: [30,30], iconAnchor: [15,15] });
@@ -950,7 +952,7 @@
     recs.forEach(function(r){
       var hasPh = !!(PHOTOS[r.origId] && PHOTOS[r.origId].length);
       var hasFeat = !!(ARTIFACTS[r.origId] && ARTIFACTS[r.origId].length);
-      var marker = L.marker([p.lat, p.lng], { icon: pinIcon(hasPh, hasFeat), keyboard: true, title: '' });
+      var marker = L.marker([p.lat, p.lng], { icon: pinIcon(hasPh, hasFeat, !!(r.approx || p.approx)), keyboard: true, title: '' });
       marker.bindTooltip(esc(r.name) + (hasPh ? ' 📷' : '') + (hasFeat ? ' ⚙' : ''), { className: 'tt', direction: 'top', offset: [0, -12] });
       marker.on('click', function(){ openRecord(r.origId); });
       markerLayer.addLayer(marker);
@@ -1107,7 +1109,7 @@
         '</div>' +
         featBlock(item.origId) +
         factsBlock(item, opts.sources, opts.facts) +
-        (opts.approx ? '<div class="note approx">' + esc(opts.approx) + '</div>' : '') +
+        ((opts.approx || item.approx || (place && place.approx)) ? '<div class="note approx">' + esc(opts.approx || item.approx || place.approx) + '</div>' : '') +
         (item.shortDesc ? '<p class="desc">' + esc(item.shortDesc) + '</p>' : '') +
         notesBlock(item) +
         (opts.modernLink != null ? '<button class="btn" data-modern="' + opts.modernLink + '">Pokaż to miejsce na mapie współczesnej</button>' : '') +
