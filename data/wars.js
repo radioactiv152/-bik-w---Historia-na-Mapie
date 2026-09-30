@@ -62,7 +62,9 @@ window.ZBIKOW.wars = {
     "label": "I wojna światowa",
     "period": "1914–1918",
     "color": "#C8A24A",
-    "intro": "Walki o Pruszków i ostrzał Żbikowa w październiku 1914 r.: stanowiska artylerii obu stron, punkty obserwacyjne, schrony, zniszczenia i mogiły, a także skutki wojny do 1918 r. Kolory linii: czerwone — ogień rosyjski, niebieskie — niemiecki.",
+    "mapTitle": "Szkic działań · Pruszków – Żbików",
+    "mapSubtitle": "październik 1914 · bitwa o Pruszków i ostrzał Żbikowa",
+    "intro": "Walki o Pruszków i ostrzał Żbikowa w październiku 1914 r.: stanowiska artylerii obu stron, punkty obserwacyjne, schrony, zniszczenia i mogiły, a także skutki wojny do 1918 r. Znaki i linie: czerwone — wojska rosyjskie, niebieskie — niemieckie.",
     "dataset": "Arkusz „zbikow_I_wojna_swiatowa_research_v2.xlsx” (miejsca M01–M47, oś czasu, źródła Z01–Z25) oraz rekordy bazy głównej.",
     "days": {
       "label": "Bitwa o Pruszków, październik 1914",
@@ -1214,11 +1216,12 @@ window.ZBIKOW.wars = {
     "lines": [
       {
         "id": "ww1-pojedynek-ros",
+        "label": "ogień rosyjski · 13–17 X",
         "from": "1914-10-13",
         "to": "1914-10-17",
         "type": "ostrzal",
         "side": "Rosjanie",
-        "color": "#EF4444",
+        "color": "#B3261E",
         "title": "Pojedynek artyleryjski: rosyjskie baterie przy szkółkach Hoserów → baterie niemieckie pod Helenowem",
         "date": "13–17 X 1914",
         "desc": "Część pocisków chybiała i padała na Pruszków, leżący między stanowiskami.",
@@ -1239,11 +1242,12 @@ window.ZBIKOW.wars = {
       },
       {
         "id": "ww1-pojedynek-niem",
+        "label": "ogień niemiecki · 13–17 X",
         "from": "1914-10-13",
         "to": "1914-10-17",
         "type": "ostrzal",
         "side": "Niemcy",
-        "color": "#60A5FA",
+        "color": "#1F4E8C",
         "title": "Pojedynek artyleryjski: niemieckie baterie spod Helenowa → rosyjskie baterie przy szkółkach Hoserów",
         "date": "13–17 X 1914",
         "sources": [
@@ -1263,11 +1267,12 @@ window.ZBIKOW.wars = {
       },
       {
         "id": "ww1-rokitno",
+        "label": "ogień na Rokitno · 17 X",
         "from": "1914-10-17",
         "to": "1914-10-17",
         "type": "ostrzal",
         "side": "Rosjanie",
-        "color": "#EF4444",
+        "color": "#B3261E",
         "title": "Rosyjskie baterie za kościołem żbikowskim → kościół w Rokitnie",
         "date": "17 X 1914",
         "desc": "Ogień korygowany przez obserwatorów z wieży kościoła (wg relacji J. Ryxa, 1924).",
@@ -1288,11 +1293,12 @@ window.ZBIKOW.wars = {
       },
       {
         "id": "ww1-wejscie-niemcow",
+        "label": "wejście Niemców · 11 X",
         "from": "1914-10-11",
         "to": "1914-10-11",
         "type": "atak",
         "side": "Niemcy",
-        "color": "#60A5FA",
+        "color": "#1F4E8C",
         "title": "Wejście Niemców do Pruszkowa aleją lipową od Helenowa",
         "date": "11 X 1914, ok. 16:30",
         "desc": "Kierunek schematycznie: z Helenowa do stacji, gdzie zniszczono telegraf i telefon. Dokładny przebieg alei do ustalenia.",
@@ -1312,6 +1318,7 @@ window.ZBIKOW.wars = {
       },
       {
         "id": "ww1-ewakuacja-kosciol",
+        "label": "ucieczka ludności · 17 X",
         "from": "1914-10-17",
         "to": "1914-10-17",
         "type": "transport",
@@ -1335,6 +1342,7 @@ window.ZBIKOW.wars = {
       },
       {
         "id": "ww1-linia-2-armii",
+        "label": "linia 2 Armii ros. · 9 X 1914",
         "type": "front",
         "context": true,
         "title": "Linia Sochaczew–Błonie–Pruszków: tu Niemcy odrzucili rosyjską 2 Armię",
@@ -1619,6 +1627,8 @@ window.ZBIKOW.wars = {
   ww2: {
     label: 'II wojna światowa',
     period: '1939–1945',
+    mapTitle: 'Żbików pod okupacją',
+    mapSubtitle: '1939–1945 · obozy, represje, konspiracja',
     color: '#E0735F',
     intro: 'Okupacja 1939–1945 w bazie: mogiły żołnierzy z września 1939 r., obozy na terenie Warsztatów Kolejowych (jeniecki w 1939, obóz pracy dla Żydów od 1941, Dulag 121 w 1944), represje i egzekucje oraz magazyny broni i punkty konspiracji AK.',
     events: [

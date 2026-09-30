@@ -12,7 +12,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%231C4552'/%3E%3Cpath d='M12 20s6-5.2 6-9.8A6 6 0 0 0 6 10.2C6 14.8 12 20 12 20Z' fill='none' stroke='%23D98F45' stroke-width='1.8'/%3E%3Ccircle cx='12' cy='10.2' r='2' fill='%23D98F45'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&family=Special+Elite&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css"/>
 <style>
@@ -251,7 +251,8 @@
   .war-group{width:32px;height:32px;display:flex;align-items:center;justify-content:center}
   .war-group i{width:26px;height:26px;transform:rotate(45deg);background:var(--wc);border:3px solid var(--pin-ring);border-radius:5px;box-shadow:0 4px 10px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center}
   .war-group i span{transform:rotate(-45deg);color:#fff;font-style:normal;font-weight:800;font-size:12px}
-  .arrow-head{width:0;height:0;border-top:9px solid transparent;border-bottom:9px solid transparent;border-left:16px solid var(--lc);filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5));transform-origin:30% 50%}
+  .arrow-head{width:26px;height:22px;transform-origin:50% 50%}
+  .arrow-head svg{display:block;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.55))}
   .war-intro{font-size:14px;line-height:1.6;margin:0}
   .legend-chips{display:flex;flex-wrap:wrap;gap:6px}
   .legend-chips button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border-strong);background:var(--faint);color:var(--text);border-radius:999px;padding:5px 10px;font-size:12px;font-weight:600}
@@ -308,6 +309,33 @@
   .src-list b{color:var(--accent);margin-right:6px}
   .src-list a{color:var(--text)}
   .src-list small{display:block;color:var(--muted)}
+
+  /* War modes: old staff-map look — sepia paper, grain, vignette, tactical symbols */
+  #map.war-mode .leaflet-tile-pane{filter:sepia(.62) saturate(.55) contrast(1.06) brightness(.96) hue-rotate(-6deg) !important}
+  #map.war-mode::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:399;
+    background:radial-gradient(ellipse at center,rgba(0,0,0,0) 52%,rgba(58,38,12,0.38) 100%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32 0 0 0 0 .24 0 0 0 0 .12 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    mix-blend-mode:multiply}
+  .war-font{font-family:'Special Elite','Courier New',monospace}
+  .war-cartouche{position:absolute;top:16px;right:16px;z-index:500;transition:right .25s ease;pointer-events:none;background:#F4EAD0;color:#2B2118;border:2px solid #2B2118;outline:1px solid #2B2118;outline-offset:3px;padding:8px 18px 7px;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,0.35);max-width:420px}
+  .war-cartouche b{display:block;font-family:'Special Elite','Courier New',monospace;font-size:15px;letter-spacing:1.5px;font-weight:400;text-transform:uppercase}
+  .war-cartouche small{display:block;font-family:'Special Elite','Courier New',monospace;font-size:11px;letter-spacing:.5px;margin-top:3px;opacity:.8}
+  .war-cartouche .key{display:flex;gap:12px;justify-content:center;margin-top:5px;font-family:'Special Elite','Courier New',monospace;font-size:10.5px}
+  .war-cartouche .key i{display:inline-block;width:18px;height:0;border-top:3px solid;vertical-align:3px;margin-right:4px}
+  .compass{position:absolute;left:16px;bottom:40px;z-index:500;pointer-events:none;width:74px;height:74px;opacity:.85;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.4))}
+  body.panel-open .war-cartouche{right:calc(var(--panel-w) + 16px)}
+  #map.war-zoom-low .war-label{display:none}
+  .g.sym{transform:none !important;background:none !important;width:26px !important;height:auto !important;display:inline-flex;align-items:center;justify-content:center}
+  .g.sym svg{width:24px;height:auto;filter:none}
+  .legend-chips .g.sym svg{width:20px}
+  .war-sym{display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,0.45));transition:transform .15s}
+  .leaflet-marker-icon:hover .war-sym{transform:scale(1.15)}
+  .is-active .war-sym{transform:scale(1.35);filter:drop-shadow(0 0 0 #fff) drop-shadow(0 0 6px rgba(255,210,120,0.95))}
+  .war-pin.dim .war-sym{opacity:.25}
+  .war-stamp{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#F4EAD0;color:#2B2118;border:2.5px solid #2B2118;box-shadow:0 0 0 3px #F4EAD0,0 0 0 4.5px var(--wc),0 4px 10px rgba(0,0,0,0.45);font-family:'Special Elite','Courier New',monospace;font-size:15px}
+  .war-label{font-family:'Special Elite','Courier New',monospace;font-size:12px;white-space:nowrap;color:var(--lc);text-shadow:0 0 3px #F4EAD0,0 0 3px #F4EAD0,0 0 6px #F4EAD0;letter-spacing:.3px;pointer-events:none;transform-origin:center}
+  .war-label span{display:inline-block}
+  @media (max-width: 860px){ .war-cartouche,.compass{display:none} }
 
   /* 1944 overlay control (next to the map style buttons) */
   .ov-panel{margin-top:8px;display:none;align-items:center;gap:10px;padding:9px 14px;border-radius:14px;font-size:12px;color:var(--muted);font-weight:700;width:max-content}
@@ -459,6 +487,14 @@
   <main>
     <div id="map" aria-label="Mapa Żbikowa"></div>
     <div id="toast" role="status" aria-live="polite"></div>
+    <div class="war-cartouche" id="war-cartouche" hidden></div>
+    <svg class="compass" id="war-compass" hidden viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="30" fill="none" stroke="#2B2118" stroke-width="1.5"/>
+      <circle cx="50" cy="50" r="24" fill="none" stroke="#2B2118" stroke-width=".8" stroke-dasharray="2 3"/>
+      <path d="M50 6 L57 50 L50 44 L43 50 Z" fill="#2B2118"/><path d="M50 94 L57 50 L50 56 L43 50 Z" fill="#F4EAD0" stroke="#2B2118" stroke-width="1.2"/>
+      <path d="M6 50 L50 43 L44 50 L50 57 Z" fill="#F4EAD0" stroke="#2B2118" stroke-width="1.2"/><path d="M94 50 L50 43 L56 50 L50 57 Z" fill="#2B2118"/>
+      <text x="50" y="5.5" text-anchor="middle" font-family="Special Elite, Courier New, monospace" font-size="11" fill="#2B2118" dy="-0.5">N</text>
+    </svg>
 
     <div class="basemap-toggle">
       <div class="pill glass">
@@ -799,7 +835,7 @@
     return L.divIcon({ className: '', html: '<div class="cluster"><span>' + n + '</span></div>', iconSize: [40,40], iconAnchor: [20,20] });
   }
   // Shared by the main map and the war layers: stacked records fan out ("spiderfy") on click.
-  function makeClusterLayer(sameIcon){
+  function makeClusterLayer(sameIcon, multiIcon){
     if (!hasCluster) return L.layerGroup();
     return L.markerClusterGroup({
       showCoverageOnHover: false,
@@ -809,7 +845,7 @@
       spiderLegPolylineOptions: { color: getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#FFB23E', weight: 1.5, opacity: 0.85 },
       iconCreateFunction: function(cluster){
         var ms = cluster.getAllChildMarkers();
-        return samePoint(ms) ? sameIcon(ms.length, ms) : clusterIcon(ms.length);
+        return samePoint(ms) ? sameIcon(ms.length, ms) : (multiIcon || clusterIcon)(ms.length);
       }
     });
   }
@@ -1551,9 +1587,8 @@
   var activeWarMk = null;
 
   function warType(t){ return WAR_TYPES[t] || { label: t || 'Wydarzenie', color: '#94A3B8', glyph: '•' }; }
-  function glyphHTML(t, cls){
-    var ty = warType(t);
-    return '<span class="' + cls + '" style="--wc:' + ty.color + '" aria-hidden="true"><span>' + esc(ty.glyph) + '</span></span>';
+  function glyphHTML(t, cls, side){
+    return '<span class="' + cls + ' sym" aria-hidden="true">' + warSymbolSVG(t, side) + '</span>';
   }
   // An event inherits name, text, dating, photos and position from the record it references (ev.ref);
   // its own fields override them. ev.link only points the "show on the modern map" button at a record.
@@ -1586,9 +1621,40 @@
              modernLink: linkRec && linkRec.place ? linkRec.item.origId : null,
              photos: ev.photos && ev.photos.length ? ev.photos : (rec ? PHOTOS[base.origId] : null) };
   }
-  function warPinIcon(t, dim){
+  // Tactical symbols in the style of period staff maps: unit frame in the side's colour,
+  // the type drawn inside (artillery dot, observation triangle, HQ staff, trench zigzag…), impacts as bursts.
+  var PAPER = '#F4EAD0', INK = '#2B2118';
+  function symColor(side, type){
+    if (side && side.indexOf('Rosjanie') === 0) return '#B3261E';
+    if (side && side.indexOf('Niemcy') === 0) return '#1F4E8C';
+    if (side && side.indexOf('Obie') === 0) return '#6B2E83';
+    if (side && side.indexOf('Ludność') === 0) return '#6B4F2A';
+    return warType(type).color;
+  }
+  function warSymbolSVG(t, side){
+    var c = symColor(side, t), ty = warType(t);
+    var frame = '<rect x="3" y="3" width="30" height="21" rx="1" fill="' + PAPER + '" stroke="' + c + '" stroke-width="2.6"/>';
+    var inner;
+    switch (t){
+      case 'artyleria': inner = frame + '<circle cx="18" cy="13.5" r="4.6" fill="' + c + '"/>'; break;
+      case 'okopy': inner = frame + '<path d="M7 17 l3.5-6 3.5 6 3.5-6 3.5 6 3.5-6 3.5 6" fill="none" stroke="' + c + '" stroke-width="2"/>'; break;
+      case 'sztab': inner = '<path d="M4 34 V3" stroke="' + INK + '" stroke-width="2.2"/>' + frame.replace('x="3"', 'x="4"') + '<text x="19" y="18" text-anchor="middle" font-family="Special Elite,Courier New,monospace" font-size="10" fill="' + c + '">SZT</text>'; break;
+      case 'obserwacja': return '<svg class="war-sym" width="34" height="30" viewBox="0 0 36 30"><path d="M18 3 L33 27 H3 Z" fill="' + PAPER + '" stroke="' + c + '" stroke-width="2.6" stroke-linejoin="round"/><circle cx="18" cy="19" r="3" fill="' + c + '"/></svg>';
+      case 'natarcie': return '<svg class="war-sym" width="34" height="24" viewBox="0 0 36 24"><path d="M3 9 H22 V3 L34 12 L22 21 V15 H3 Z" fill="' + c + '" stroke="' + INK + '" stroke-width="1.4" stroke-linejoin="round"/></svg>';
+      case 'schron': inner = frame + '<path d="M9 20 a9 8 0 0 1 18 0 z" fill="' + c + '"/>'; break;
+      case 'zniszczenie': case 'pocisk':
+        var pts = [], n = 12, R = t === 'pocisk' ? 13 : 14, r = t === 'pocisk' ? 6 : 7;
+        for (var i = 0; i < n * 2; i++){ var a = Math.PI * i / n, rr = i % 2 ? r : R; pts.push((16 + rr * Math.sin(a)).toFixed(1) + ',' + (16 - rr * Math.cos(a)).toFixed(1)); }
+        return '<svg class="war-sym" width="32" height="32" viewBox="0 0 32 32"><polygon points="' + pts.join(' ') + '" fill="' + (t === 'pocisk' ? '#F59E0B' : '#E4572E') + '" stroke="' + INK + '" stroke-width="1.3" stroke-linejoin="round"/><circle cx="16" cy="16" r="' + (t === 'pocisk' ? 3 : 3.6) + '" fill="#FFE8A3"/></svg>';
+      case 'pamiec': return '<svg class="war-sym" width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="11.5" fill="' + PAPER + '" stroke="' + INK + '" stroke-width="2"/><path d="M14 6.5 V21.5 M8.5 11.5 H19.5" stroke="' + INK + '" stroke-width="2.6"/></svg>';
+      default: inner = frame + '<text x="18" y="18.5" text-anchor="middle" font-size="12" font-weight="700" fill="' + c + '">' + esc(ty.glyph) + '</text>';
+    }
+    return '<svg class="war-sym" width="36" height="' + (t === 'sztab' ? 36 : 27) + '" viewBox="0 0 36 ' + (t === 'sztab' ? 36 : 27) + '">' + inner + '</svg>';
+  }
+  function warPinIcon(t, dim, side){
     var ty = warType(t);
-    return L.divIcon({ className: '', html: '<div class="war-pin' + (ty.impact ? ' impact' : '') + (dim ? ' dim' : '') + '" style="--wc:' + ty.color + '"><i><span>' + esc(ty.glyph) + '</span></i></div>', iconSize: [26,26], iconAnchor: [13,13] });
+    var h = t === 'sztab' ? 36 : 30;
+    return L.divIcon({ className: '', html: '<div class="war-pin' + (ty.impact ? ' impact' : '') + (dim ? ' dim' : '') + '">' + warSymbolSVG(t, side) + '</div>', iconSize: [36, h], iconAnchor: [18, t === 'sztab' ? 34 : h / 2] });
   }
   var SIDE_COLORS = { 'Rosjanie': '#EF4444', 'Niemcy': '#60A5FA', 'Ludność': '#A855F7' };
   function sideColor(side){
@@ -1617,7 +1683,44 @@
     var a = map.project(L.latLng(coords[coords.length - 2]), 17), b = map.project(L.latLng(coords[coords.length - 1]), 17);
     var deg = Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
     return L.marker(coords[coords.length - 1], { interactive: false, keyboard: false,
-      icon: L.divIcon({ className: '', html: '<div class="arrow-head" style="--lc:' + color + ';transform:rotate(' + deg + 'deg)"></div>', iconSize: [16,18], iconAnchor: [5,9] }) });
+      icon: L.divIcon({ className: '', html: '<div class="arrow-head" style="transform:rotate(' + deg + 'deg)"><svg width="26" height="22" viewBox="0 0 26 22"><path d="M1 2 L25 11 L1 20 L7 11 Z" fill="' + color + '" stroke="' + INK + '" stroke-width="1.3" stroke-linejoin="round"/></svg></div>', iconSize: [26,22], iconAnchor: [19,11] }) });
+  }
+  // Artillery fire drawn as a ballistic arc (quadratic curve bowed to the left of the direction of fire).
+  function ballisticArc(a, b){
+    var pa = map.project(L.latLng(a), 15), pb = map.project(L.latLng(b), 15);
+    var dx = pb.x - pa.x, dy = pb.y - pa.y, len = Math.sqrt(dx * dx + dy * dy);
+    var cx = (pa.x + pb.x) / 2 + dy / len * len * 0.18, cy = (pa.y + pb.y) / 2 - dx / len * len * 0.18;
+    var out = [];
+    for (var i = 0; i <= 40; i++){
+      var u = i / 40, x = (1 - u) * (1 - u) * pa.x + 2 * (1 - u) * u * cx + u * u * pb.x, y = (1 - u) * (1 - u) * pa.y + 2 * (1 - u) * u * cy + u * u * pb.y;
+      var ll = map.unproject(L.point(x, y), 15); out.push([ll.lat, ll.lng]);
+    }
+    return out;
+  }
+  // Front line "teeth": small triangles on the right-hand side of the line direction.
+  function frontTeeth(coords, color){
+    var out = [], z = 15, step = 80;
+    for (var i = 0; i < coords.length - 1; i++){
+      var pa = map.project(L.latLng(coords[i]), z), pb = map.project(L.latLng(coords[i + 1]), z);
+      var dx = pb.x - pa.x, dy = pb.y - pa.y, len = Math.sqrt(dx * dx + dy * dy), ux = dx / len, uy = dy / len;
+      for (var d = step / 2; d < len; d += step){
+        var bx = pa.x + ux * d, by = pa.y + uy * d, w = 14, h = 16;
+        var p1 = map.unproject(L.point(bx - ux * w, by - uy * w), z), p2 = map.unproject(L.point(bx + ux * w, by + uy * w), z),
+            p3 = map.unproject(L.point(bx - uy * h, by + ux * h), z);
+        out.push(L.polygon([p1, p3, p2], { color: color, weight: 1, fillColor: color, fillOpacity: 0.9, opacity: 0.9, interactive: false }));
+      }
+    }
+    return out;
+  }
+  // Label written along the middle of a line, kept upright.
+  function lineLabel(geom, text, color){
+    if (!text || geom.length < 2) return null;
+    var mid = Math.floor(geom.length / 2), a = geom[Math.max(0, mid - 1)], b = geom[Math.min(geom.length - 1, mid + 1)];
+    var pa = map.project(L.latLng(a), 15), pb = map.project(L.latLng(b), 15);
+    var deg = Math.atan2(pb.y - pa.y, pb.x - pa.x) * 180 / Math.PI;
+    if (deg > 90) deg -= 180; if (deg < -90) deg += 180;
+    return L.marker(geom[mid], { interactive: false, keyboard: false,
+      icon: L.divIcon({ className: '', html: '<div class="war-label" style="--lc:' + color + ';transform:translate(-50%,-150%) rotate(' + deg.toFixed(1) + 'deg)"><span>' + esc(text) + '</span></div>', iconSize: [0, 0] }) });
   }
   function buildWar(key){
     if (warState[key]) return warState[key];
@@ -1626,13 +1729,14 @@
       .sort(function(a, b){ return sortKey(a.ev.sort).localeCompare(sortKey(b.ev.sort)); });
     var s = { key: key, war: war, events: events, markers: {}, filter: {}, bounds: [], day: null,
       placeholders: (war.events || []).filter(function(e){ return e.placeholder; }),
-      layer: makeClusterLayer(function(n){
-        return L.divIcon({ className: '', html: '<div class="war-group" style="--wc:' + war.color + '"><i><span>' + n + '</span></i></div>', iconSize: [32,32], iconAnchor: [16,16] });
-      }),
+      layer: (function(){
+        var stamp = function(n){ return L.divIcon({ className: '', html: '<div class="war-stamp" style="--wc:' + war.color + '">' + n + '</div>', iconSize: [40,40], iconAnchor: [20,20] }); };
+        return makeClusterLayer(stamp, stamp);
+      })(),
       lineLayer: L.layerGroup() };
     events.forEach(function(e, i){
       if (!e.ll) return;
-      var m = L.marker(e.ll, { icon: warPinIcon(e.ev.type), keyboard: true, title: '' });
+      var m = L.marker(e.ll, { icon: warPinIcon(e.ev.type, false, e.ev.side), keyboard: true, title: '' });
       m.bindTooltip(esc(e.item.name) + (e.item.dating ? ' · ' + esc(e.item.dating) : '') + (e.ev.side ? ' · ' + esc(e.ev.side) : ''), { className: 'tt', direction: 'top', offset: [0, -14] });
       m.on('click', function(){ openEvent(key, i); });
       m.evType = e.ev.type;
@@ -1645,11 +1749,16 @@
       if (!line.coords || line.coords.length < 2) return;   // placeholders without coordinates are only listed
       var lt = LINE_TYPES[line.type] || { color: war.color, dash: null, arrow: false, label: '' };
       var color = line.color || lt.color;
-      var casing = L.polyline(line.coords, { color: getComputedStyle(document.documentElement).getPropertyValue('--casing').trim(), weight: 8, opacity: line.context ? 0.5 : 1, interactive: false }).addTo(s.lineLayer);
-      var pl = L.polyline(line.coords, { color: color, weight: line.context ? 3 : 4, opacity: 0.95, dashArray: lt.dash || null, className: lt.animate ? 'fire-line' : '' }).addTo(s.lineLayer);
+      var geom = line.type === 'ostrzal' && line.coords.length === 2 ? ballisticArc(line.coords[0], line.coords[1]) : line.coords;
+      var casing = L.polyline(geom, { color: getComputedStyle(document.documentElement).getPropertyValue('--casing').trim(), weight: 8, opacity: line.context ? 0.5 : 1, interactive: false }).addTo(s.lineLayer);
+      var pl = L.polyline(geom, { color: color, weight: line.context ? 3 : 4, opacity: 0.95, dashArray: lt.dash || null, className: lt.animate ? 'fire-line' : '' }).addTo(s.lineLayer);
       pl.bindTooltip('<b>' + esc(line.title || lt.label) + '</b>' + (line.date ? '<br>' + esc(line.date) : '') + (line.side ? ' · ' + esc(line.side) : '') + (line.desc ? '<br>' + esc(line.desc) : ''), { className: 'tt', sticky: true });
-      var ah = lt.arrow ? arrowHead(line.coords, color).addTo(s.lineLayer) : null;
-      s.lineParts.push({ line: line, paths: [casing, pl], op: [line.context ? 0.5 : 1, 0.95], arrow: ah });
+      var ah = lt.arrow ? arrowHead(geom, color).addTo(s.lineLayer) : null;
+      var paths = [casing, pl], ops = [line.context ? 0.5 : 1, 0.95];
+      if (line.type === 'front') frontTeeth(line.coords, color).forEach(function(tp){ tp.addTo(s.lineLayer); paths.push(tp); ops.push(0.9); });
+      var lbl = lineLabel(geom, (line.label || (lt.label + (line.date ? ' · ' + line.date : ''))).toUpperCase(), color);
+      if (lbl) lbl.addTo(s.lineLayer);
+      s.lineParts.push({ line: line, paths: paths, op: ops, arrow: ah, label: lbl });
       if (!line.context) line.coords.forEach(function(c){ s.bounds.push(L.latLng(c)); });
     });
     applyWarFilter(s);
@@ -1671,6 +1780,7 @@
       var on = lineActive(lp.line, s.day);
       lp.paths.forEach(function(p){ p.setStyle({ opacity: on ? lp.op[lp.paths.indexOf(p)] : 0.12 }); });
       if (lp.arrow) lp.arrow.setOpacity(on ? 1 : 0.15);
+      if (lp.label) lp.label.setOpacity(on ? 1 : 0.2);
     });
     setActiveWar(activeWarMk);
   }
@@ -1680,6 +1790,9 @@
     if (mk && mk._icon){ mk._icon.classList.add('is-active'); mk.setZIndexOffset(1000); }
   }
   map.on('zoomend moveend', function(){ if (activeWarMk) setActiveWar(activeWarMk); });
+  function syncLabelZoom(){ mapEl.classList.toggle('war-zoom-low', map.getZoom() < 13); }
+  map.on('zoomend', syncLabelZoom);
+  syncLabelZoom();
 
   function fitWar(s){
     if (!s.bounds.length) return;
@@ -1701,6 +1814,14 @@
     setPressed('ww1', m === 'ww1');
     setPressed('ww2', m === 'ww2');
     mapEl.classList.toggle('war-mode', m !== 'modern');
+    var cart = $('war-cartouche');
+    cart.hidden = m === 'modern';
+    $('war-compass').toggleAttribute('hidden', m === 'modern');
+    if (m !== 'modern'){
+      var w = WARS[m];
+      cart.innerHTML = '<b>' + esc(w.mapTitle || (w.label + ' · ' + w.period)) + '</b>' + (w.mapSubtitle ? '<small>' + esc(w.mapSubtitle) + '</small>' : '') +
+        (m === 'ww1' ? '<div class="key"><span><i style="border-color:#B3261E"></i>wojska rosyjskie</span><span><i style="border-color:#1F4E8C"></i>wojska niemieckie</span><span><i style="border-color:#6B2E83"></i>obie strony</span></div>' : '');
+    }
     if (m === 'modern'){
       if (!map.hasLayer(markerLayer)) markerLayer.addTo(map);
       warSheet.classList.remove('open');
@@ -1741,7 +1862,7 @@
       var year = String(e.ev.sort || '').slice(0, 4), head = '';
       if (year && year !== lastYear){ head = '<li class="year" aria-hidden="true">' + esc(year) + '</li>'; lastYear = year; }
       var where = e.ev.where || (e.place ? e.place.address : (e.item.locationDesc || ''));
-      return head + '<li' + (activeOn(e, s.day) ? '' : ' class="off"') + '><button data-ev="' + i + '">' + glyphHTML(e.ev.type, 'g') + '<span><span class="d">' + esc(e.item.dating || year) + '</span>' +
+      return head + '<li' + (activeOn(e, s.day) ? '' : ' class="off"') + '><button data-ev="' + i + '">' + glyphHTML(e.ev.type, 'g', e.ev.side) + '<span><span class="d">' + esc(e.item.dating || year) + '</span>' +
         esc(e.item.name) + (e.photos && e.photos.length ? camSvg : '') +
         '<small>' + esc(where) + (e.ll ? '' : (where ? ' · ' : '') + 'bez punktu na mapie') + '</small></span></button></li>';
     }).join('');
