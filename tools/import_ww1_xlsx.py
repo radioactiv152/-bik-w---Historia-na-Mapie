@@ -35,7 +35,7 @@ C = {
     'kazimierz': (52.162348, 20.809598), 'cm_pruszkow': (52.157041, 20.799612), 'rokitno_kosciol': (52.184856, 20.667204),
     'rokitno_cm': (52.183551, 20.663917), 'stalowa': (52.162655, 20.792576), 'olowkowa': (52.162811, 20.794173),
     'teichfeld': (52.161432, 20.806072), 'sochaczew': (52.229656, 20.237937), 'blonie': (52.194606, 20.616969),
-    'pruszkow': (52.171959, 20.802982),
+    'pruszkow': (52.171959, 20.802982), 'sokol': (52.1660022, 20.8017553),
 }
 HOSER = (52.1908357, 20.8060521)   # ul. Żbikowska 51 (szkółki Hoserów)
 
@@ -66,7 +66,7 @@ PLAN = {
     'M43': ('olowkowa', 'Punkt orientacyjny: rejon ulic Stalowej i Ołówkowej.', 'zniszczenie', '1914-10-14', '1914-10-19', '1914-10-14', None),
     'M41': (None, None, 'zniszczenie', '1914-10-14', '1914-10-19', '1914-10-14', None),
     'M15': (None, None, 'zniszczenie', None, None, '1914-10', None),
-    'M16': (None, None, 'zniszczenie', '1914-10-13', '1914-10-14', '1914-10-13', None),
+    'M16': ('sokol', None, 'zniszczenie', '1914-10-13', '1914-10-14', '1914-10-13', None),
     'M17': (None, None, 'zniszczenie', '1914-10-13', '1914-10-14', '1914-10-13', None),
     'M18': ('teichfeld', 'Punkt orientacyjny: przy pałacu Teichfelda; fabryka stała w południowej dzielnicy osady.', 'zniszczenie', '1914-10-13', '1914-10-14', '1914-10-13', None),
     'M19': (None, None, 'zniszczenie', '1914-10-13', '1914-10-14', '1914-10-13', None),
@@ -88,6 +88,15 @@ PLAN = {
 CAT_TYPES = {'Stanowisko artylerii': 'artyleria', 'Punkt obserwacyjny': 'obserwacja', 'Kwatera': 'sztab',
              'Kierunek natarcia': 'natarcie', 'Okopy': 'okopy', 'Zniszczenia': 'zniszczenie', 'Pocisk': 'pocisk',
              'Schron': 'schron', 'Cmentarz': 'pamiec', 'Skutki po wojnie': 'spoleczne', 'Niepodległość': 'niepodleglosc'}
+
+# public-domain photos attached to spreadsheet rows (files in img/, thumbnails in img/t/)
+PHOTOS = {
+    'M16': [{'file': 'img/sokol-siedziba.jpg', 'thumb': 'img/t/sokol-siedziba.jpg',
+             'caption': 'Pruszków — siedziba „Sokoła” (pocztówka)', 'date': 'przed 1939', 'author': '',
+             'sourceName': 'Polona / Wikimedia Commons',
+             'sourceUrl': 'https://commons.wikimedia.org/wiki/File:Pruszkow_-_siedziba_%22Sokola%22._przed_1939_(72788923).jpg',
+             'license': 'domena publiczna'}],
+}
 
 src = {r['ID']: r for r in rows('Zrodla')}
 sources = {k: {'name': v['Opis źródła'], 'url': v['Adres'] if v['Adres'].startswith('http') else '', 'type': v['Typ'], 'note': v['Uwagi o wiarygodności']} for k, v in src.items()}
@@ -119,6 +128,8 @@ for r in rows('Miejsca'):
         ev['approx'] = approx
     if link:
         ev['link'] = link
+    if mid in PHOTOS:
+        ev['photos'] = PHOTOS[mid]
     events.append({k: v for k, v in ev.items() if v not in ('', None, [])})
 
 # records from the main database that the spreadsheet does not cover

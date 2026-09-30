@@ -807,7 +807,21 @@ window.ZBIKOW.wars = {
           "Z04"
         ],
         "from": "1914-10-13",
-        "to": "1914-10-14"
+        "to": "1914-10-14",
+        "lat": 52.1660022,
+        "lng": 20.8017553,
+        "photos": [
+          {
+            "file": "img/sokol-siedziba.jpg",
+            "thumb": "img/t/sokol-siedziba.jpg",
+            "caption": "Pruszków — siedziba „Sokoła” (pocztówka)",
+            "date": "przed 1939",
+            "author": "",
+            "sourceName": "Polona / Wikimedia Commons",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Pruszkow_-_siedziba_%22Sokola%22._przed_1939_(72788923).jpg",
+            "license": "domena publiczna"
+          }
+        ]
       },
       {
         "id": "ww1-m17",
