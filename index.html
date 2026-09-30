@@ -338,7 +338,48 @@
   .war-stamp{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#F4EAD0;color:#2B2118;border:2.5px solid #2B2118;box-shadow:0 0 0 3px #F4EAD0,0 0 0 4.5px var(--wc),0 4px 10px rgba(0,0,0,0.45);font-family:'Special Elite','Courier New',monospace;font-size:15px}
   .war-label{font-family:'Special Elite','Courier New',monospace;font-size:12px;white-space:nowrap;color:var(--lc);text-shadow:0 0 3px #F4EAD0,0 0 3px #F4EAD0,0 0 6px #F4EAD0;letter-spacing:.3px;pointer-events:none;transform-origin:center}
   .war-label span{display:inline-block}
-  @media (max-width: 860px){ .war-cartouche,.compass{display:none} }
+  .war-chip{display:none}
+  .seg-btn .sh{display:none}
+  .intro-more{display:none}
+  @media (max-width: 860px){
+    .war-cartouche,.compass{display:none}
+    /* compact cartouche: which war / which day is on the map; tap = back to the list */
+    .war-chip{margin-top:8px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;max-width:calc(100vw - 20px);background:#F4EAD0;color:#2B2118;border:1.5px solid #2B2118;outline:1px solid #2B2118;outline-offset:2px;padding:6px 12px 5px;box-shadow:0 6px 16px rgba(0,0,0,0.35);text-align:left;font-family:'Special Elite','Courier New',monospace}
+    .war-chip[hidden]{display:none}
+    .war-chip b{font-weight:400;font-size:13px;letter-spacing:1px;text-transform:uppercase}
+    .war-chip small{font-size:11px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+    .war-chip .key{display:flex;gap:10px;font-size:10px;opacity:.9}
+    .war-chip .key i{display:inline-block;width:14px;border-top:3px solid;vertical-align:3px;margin-right:4px}
+    /* war sheets start lower so the map stays readable; drag / tap the handle to expand */
+    body.war-on #war-sheet, body.war-on #panel{height:min(52dvh,540px)}
+    .sheet{transition:transform .25s ease,visibility .25s,height .25s ease}
+    .sheet.expanded, body.war-on #war-sheet.expanded, body.war-on #panel.expanded{height:calc(100dvh - var(--header-h) - 10px)}
+    .sheet-head{cursor:grab;touch-action:none}
+    .grabber{position:relative}
+    .grabber::after{content:"";position:absolute;inset:-10px -40px}
+    .war-intro.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+    .intro-more{display:inline-block;margin-top:-6px;background:none;border:none;padding:4px 0;color:var(--accent);font-weight:700;font-size:12.5px}
+    .legend-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}
+    .legend-chips::-webkit-scrollbar{display:none}
+    .legend-chips button{flex:0 0 auto;padding:7px 11px}
+    .days{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent);scrollbar-width:none}
+    .days::-webkit-scrollbar{display:none}
+    .days button{min-width:48px;min-height:46px}
+    .timeline button > span{flex:1;min-width:0}
+    .timeline .d{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .timeline button{padding:11px 4px}
+    .badge .cx{display:none}
+    .badges{gap:6px}
+    .facts dd a{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .facts dd{min-width:0}
+    .war-label{font-size:11px}
+  }
+  @media (max-width: 480px){
+    .seg-btn .lg{display:none}
+    .seg-btn .sh{display:inline}
+    .seg.pill{gap:2px}
+    .seg.pill .seg-btn{padding:8px 7px;letter-spacing:0;font-size:11px}
+  }
 
   /* 1944 overlay control (next to the map style buttons) */
   .ov-panel{margin-top:8px;display:none;align-items:center;gap:10px;padding:9px 14px;border-radius:14px;font-size:12px;color:var(--muted);font-weight:700;width:max-content}
@@ -367,7 +408,7 @@
   .stop-num{min-width:30px;height:30px;padding:0 6px;border-radius:15px;display:flex;align-items:center;justify-content:center;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.35);font-weight:800;font-size:12.5px;border:3px solid var(--pin-ring);box-shadow:0 4px 10px rgba(0,0,0,0.5);white-space:nowrap;transition:transform .15s}
   .leaflet-marker-icon:hover .stop-num{transform:scale(1.12)}
   #map.route-mode .leaflet-marker-pane{opacity:.35}
-  .route-bar{display:flex;align-items:center;gap:8px;padding:10px 14px 10px 18px;background:rgba(0,0,0,0.12);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2;backdrop-filter:blur(6px)}
+  .route-bar{display:flex;align-items:center;gap:8px;padding:10px 14px 10px 18px;background:linear-gradient(rgba(0,0,0,0.12),rgba(0,0,0,0.12)),var(--panel);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2;backdrop-filter:blur(6px)}
   .route-bar .rb-list{flex:1;display:flex;align-items:center;gap:10px;background:none;border:none;color:var(--text);text-align:left;font-weight:700;font-size:13.5px;padding:0}
   .route-bar .rb-list small{display:block;color:var(--rc);font-size:11px;font-weight:700;letter-spacing:.3px}
   .route-bar .icon-btn{font-size:22px;line-height:1}
@@ -515,6 +556,7 @@
         <input type="range" id="opacity-slider" min="0" max="1" step="0.05" value="0.15" aria-label="Przenikanie zdjęcia z 1944 i mapy współczesnej">
         <span>dziś</span>
       </div>
+      <button class="war-chip" id="war-chip" hidden aria-label="Pokaż listę wydarzeń tej warstwy"></button>
       <div class="style-menu glass" id="style-menu" role="menu">
         <div class="sm-label">Styl mapy</div>
         <div class="sm-grid" id="sm-maps"></div>
@@ -533,9 +575,9 @@
 
     <div class="bottom-bar map-ui">
       <div class="seg pill glass" role="toolbar" aria-label="Warstwy i widoki">
-        <button class="seg-btn" data-layer="wspolczesna" aria-pressed="true">WSPÓŁCZESNA</button>
-        <button class="seg-btn" data-layer="ww1" aria-pressed="false" title="I wojna światowa (1914–1918)">I WOJNA</button>
-        <button class="seg-btn" data-layer="ww2" aria-pressed="false" title="II wojna światowa (1939–1945)">II WOJNA</button>
+        <button class="seg-btn" data-layer="wspolczesna" aria-pressed="true"><span class="lg">WSPÓŁCZESNA</span><span class="sh">DZIŚ</span></button>
+        <button class="seg-btn" data-layer="ww1" aria-pressed="false" title="I wojna światowa (1914–1918)"><span class="lg">I WOJNA</span><span class="sh">I WŚ</span></button>
+        <button class="seg-btn" data-layer="ww2" aria-pressed="false" title="II wojna światowa (1939–1945)"><span class="lg">II WOJNA</span><span class="sh">II WŚ</span></button>
         <span class="sep" aria-hidden="true"></span>
         <button class="seg-btn" data-layer="miejsca" aria-pressed="false">MIEJSCA</button>
         <button class="seg-btn" data-layer="zdjecia" aria-pressed="false">ZDJĘCIA</button>
@@ -628,7 +670,7 @@
     <h4>Nakładka 1944</h4>
     <p>Zdjęcie lotnicze z 1944 r. zgeoreferencowane w MapWarper. Włączysz je przyciskiem <b>1944</b> obok stylu mapy; suwakiem przechodzisz płynnie między rokiem 1944 a dzisiejszą mapą. Działa na każdej warstwie.</p>
     <h4>I i II wojna światowa</h4>
-    <p>Przyciski <b>I WOJNA</b> i <b>II WOJNA</b> przełączają mapę na warstwę z miejscami i wydarzeniami z lat 1914–1918 oraz 1939–1945 — z osią czasu, legendą i kartami wydarzeń. Wydarzenia pochodzą z rekordów bazy; linie frontu i kierunki ataków są przygotowane do uzupełnienia.</p>
+    <p>Przyciski <b>I WOJNA</b> i <b>II WOJNA</b> (na telefonie <b>I WŚ</b> / <b>II WŚ</b>) przełączają mapę na warstwę z miejscami i wydarzeniami z lat 1914–1918 oraz 1939–1945 — z osią czasu, legendą i kartami wydarzeń. Wydarzenia, linie frontu, ostrzał i kierunki ataków pochodzą z arkuszy badawczych. Na telefonie kartę można rozwinąć na cały ekran, przeciągając ją w górę lub stukając w uchwyt.</p>
     <h4>Artefakty i produkcja</h4>
     <p>Jeśli z miejscem są związane artefakty albo wiadomo, co tu produkowano, karta pokazuje wyróżnione przyciski <b>ARTEFAKTY</b> i <b>CO TU PRODUKOWANO</b>, które otwierają galerię. Punkty z takimi informacjami mają małą zieloną kropkę.</p>
     <h4>Trasy spacerowe</h4>
@@ -908,9 +950,10 @@
   }
   // Bring a record's marker into view; if it shares an address, fan the group out.
   function revealMarker(orig, cb){ revealIn(markerLayer, markers[orig], cb); }
-  function revealIn(layer, m, cb){
+  function revealIn(layer, m, cb, minZ){
     if (!m) return;
-    var z = Math.max(map.getZoom(), 17);
+    minZ = minZ || 17;
+    var z = Math.max(map.getZoom(), minZ);
     function spread(){
       if (hasCluster && layer._inZoomAnimation){ layer.once('animationend', spread); return; }
       var parent = hasCluster ? layer.getVisibleParent(m) : m;
@@ -919,7 +962,7 @@
         parent.spiderfy();
       } else cb();
     }
-    if (m._icon && map.getZoom() >= 17){ map.panTo(offsetCenter(m.getLatLng(), z)); cb(); return; }
+    if (m._icon && map.getZoom() >= minZ){ map.panTo(offsetCenter(m.getLatLng(), z)); cb(); return; }
     map.once('moveend', spread);
     map.flyTo(offsetCenter(m.getLatLng(), z), z, { duration: 0.5 });
   }
@@ -939,7 +982,7 @@
     if (item.dating) rows += '<dt>Datowanie</dt><dd>' + esc(item.dating) + '</dd>';
     if (item.source) rows += '<dt>Źródło</dt><dd>' + esc(item.source) + '</dd>';
     if (sources && sources.length) rows += '<dt>Źródła</dt><dd>' + sources.map(function(s){
-      return s.url ? '<a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.name || s.url) + '</a>' : esc(s.name);
+      return s.url ? '<a href="' + esc(s.url) + '" target="_blank" rel="noopener" title="' + esc(s.name || s.url) + '">' + esc(s.name || s.url) + '</a>' : esc(s.name);
     }).join('<br>') + '</dd>';
     if (item.level) rows += '<dt>Lokalizacja</dt><dd>' + esc(item.level) + '</dd>';
     return rows ? '<dl class="facts">' + rows + '</dl>' : '';
@@ -1028,6 +1071,7 @@
 
   var current = null; // { rec }
   function syncBodyState(){
+    [panel, placesList, routesSheet, warSheet].forEach(function(x){ if (!x.classList.contains('open')) x.classList.remove('expanded'); });
     document.body.classList.toggle('panel-open', panel.classList.contains('open') || placesList.classList.contains('open') || routesSheet.classList.contains('open') || warSheet.classList.contains('open'));
     setPressed('trasy', routesSheet.classList.contains('open') || !!activeRoute);
     setPressed('miejsca', placesList.classList.contains('open') && listFilter !== 'photos');
@@ -1373,7 +1417,7 @@
       var layer = btn.dataset.layer;
       if (layer === 'wspolczesna') setMode('modern');
       else if (layer === 'ww1' || layer === 'ww2'){
-        if (mode === layer && warSheet.classList.contains('open')){ warSheet.classList.remove('open'); syncBodyState(); }
+        if (mode === layer && warSheet.classList.contains('open')) closeWarSheet();
         else if (mode === layer) openWarSheet();
         else setMode(layer);
       }
@@ -1670,7 +1714,8 @@
   function certBadge(c){
     if (!c) return '';
     var n = norm(c), cls = n.indexOf('potwierdz') === 0 ? 'cert-pot' : n.indexOf('relacja') === 0 ? 'cert-rel' : n.indexOf('hipotez') === 0 ? 'cert-hip' : '';
-    return '<span class="badge ' + cls + '" title="Pewność"><span class="dot"></span>' + esc(c) + '</span>';
+    var m = /^(.*?)\s*(\(.*\))$/.exec(c);
+    return '<span class="badge ' + cls + '" title="Pewność: ' + esc(c) + '"><span class="dot"></span>' + (m ? esc(m[1]) + '<span class="cx">&nbsp;' + esc(m[2]) + '</span>' : esc(c)) + '</span>';
   }
   // Day-by-day view: an event is active on a day when it falls inside its from–to range.
   // s.day is either a single day ('1914-10-17') or a period { from, to, i, label } (war.phases).
@@ -1841,10 +1886,32 @@
 
   function fitWar(s){
     if (!s.bounds.length) return;
-    var pad = mobileMQ.matches ? { paddingTopLeft: [30, 70], paddingBottomRight: [30, warSheet.offsetHeight + 30] }
-                               : { paddingTopLeft: [60, 80], paddingBottomRight: [warSheet.offsetWidth + 60, 100] };
+    var open = [warSheet, panel].filter(function(x){ return x.classList.contains('open'); })[0];
+    var top = mobileMQ.matches ? (($('war-chip').offsetHeight || 0) + 80) : 80;
+    var pad = mobileMQ.matches ? { paddingTopLeft: [30, top], paddingBottomRight: [30, (open ? open.offsetHeight : 70) + 30] }
+                               : { paddingTopLeft: [60, 80], paddingBottomRight: [(open ? open.offsetWidth : 0) + 60, 100] };
     map.fitBounds(L.latLngBounds(s.bounds), pad);
   }
+  function warPoints(s){
+    var pts = s.events.filter(function(x){ return x.ll && activeOn(x, s.day) && s.filter[x.ev.type] !== false; }).map(function(x){ return x.ll; });
+    (s.lineParts || []).forEach(function(lp){ if (!lp.line.context && lineActive(lp.line, s.day)) lp.line.coords.forEach(function(c){ pts.push(L.latLng(c)); }); });
+    (s.areaParts || []).forEach(function(ap){ if (lineActive(ap.area, s.day)) ap.area.coords.forEach(function(c){ pts.push(L.latLng(c)); }); });
+    return pts;
+  }
+  function syncWarChip(){
+    var chip = $('war-chip');
+    chip.hidden = mode === 'modern';
+    if (mode === 'modern') return;
+    var s = warState[mode], w = s.war, d = s.day, sub;
+    if (d && typeof d !== 'string') sub = d.label;
+    else if (d){ var lb = dayLabel(d); sub = lb.d + ' ' + lb.m; }
+    else sub = w.period;
+    var n = s.events.filter(function(e){ return e.ll && activeOn(e, d) && s.filter[e.ev.type] !== false; }).length;
+    chip.innerHTML = '<b>' + esc(w.label) + '</b><small>' + esc(sub) + ' · ' + n + ' na mapie</small>' +
+      '<span class="key">' + (w.sidesKey || [{ label: 'Rosjanie', color: '#B3261E' }, { label: 'Niemcy', color: '#1F4E8C' }]).slice(0, 3)
+        .map(function(k){ return '<span><i style="border-color:' + k.color + '"></i>' + esc(k.label) + '</span>'; }).join('') + '</span>';
+  }
+  $('war-chip').addEventListener('click', function(){ openWarSheet(); });
   function setMode(m, quiet){
     if (m !== 'modern' && !WARS[m]) m = 'modern';
     if (m === mode){ if (m !== 'modern' && !quiet) openWarSheet(); return; }
@@ -1859,6 +1926,7 @@
     setPressed('ww1', m === 'ww1');
     setPressed('ww2', m === 'ww2');
     mapEl.classList.toggle('war-mode', m !== 'modern');
+    document.body.classList.toggle('war-on', m !== 'modern');
     var cart = $('war-cartouche');
     cart.hidden = m === 'modern';
     $('war-compass').toggleAttribute('hidden', m === 'modern');
@@ -1873,6 +1941,7 @@
       warSheet.classList.remove('open');
       if (leavingWar && !quiet && current && current.kind === 'event'){ panel.classList.remove('open'); current = null; }
       syncBodyState();
+      syncWarChip();
       setHash('');
       return;
     }
@@ -1883,6 +1952,7 @@
     s.lineLayer.addTo(map);
     s.layer.addTo(map);
     hatchAreas(s);
+    syncWarChip();
     if (current && current.kind !== 'event'){ panel.classList.remove('open'); current = null; }
     if (!quiet){ openWarSheet(); setTimeout(function(){ fitWar(s); }, 60); }
     else syncBodyState();
@@ -1966,7 +2036,8 @@
           '<small>' + esc([d.type, d.note].filter(Boolean).join(' · ')) + '</small></span></li>';
       }).join('') + '</ul></details>' : '';
     warBody.innerHTML = '<div class="panel-inner">' +
-      (war.intro ? '<p class="war-intro">' + esc(war.intro) + '</p>' : '') +
+      (war.intro ? '<p class="war-intro' + (s.introOpen || war.intro.length < 160 ? '' : ' clamp') + '">' + esc(war.intro) + '</p>' +
+        (war.intro.length < 160 ? '' : '<button class="intro-more" aria-expanded="' + String(!!s.introOpen) + '">' + (s.introOpen ? 'Zwiń ▴' : 'Czytaj więcej ▾') + '</button>') : '') +
       daysHTML +
       (legend ? '<div><div class="section-label">Legenda · kliknij, aby filtrować</div><div class="legend-chips">' + legend + '</div></div>' : '') +
       '<div><div class="section-label">Oś czasu (' + shown + ')</div>' +
@@ -1990,9 +2061,8 @@
       renderWarSheet(s);
       var sel = warBody.querySelector('.days button[aria-pressed="true"]');
       if (sel){ var strip = sel.parentNode; strip.scrollLeft = sel.offsetLeft - strip.offsetLeft - strip.clientWidth / 2 + sel.offsetWidth / 2; }
-      var pts = s.events.filter(function(x){ return x.ll && activeOn(x, s.day) && s.filter[x.ev.type] !== false; }).map(function(x){ return x.ll; });
-      (s.lineParts || []).forEach(function(lp){ if (!lp.line.context && lineActive(lp.line, s.day)) lp.line.coords.forEach(function(c){ pts.push(L.latLng(c)); }); });
-      (s.areaParts || []).forEach(function(ap){ if (lineActive(ap.area, s.day)) ap.area.coords.forEach(function(c){ pts.push(L.latLng(c)); }); });
+      syncWarChip();
+      var pts = warPoints(s);
       if (pts.length) fitWar({ bounds: pts });
       return;
     }
@@ -2002,12 +2072,30 @@
       s.filter[t] = s.filter[t] === false;
       applyWarFilter(s);
       renderWarSheet(s);
+      syncWarChip();
+      return;
+    }
+    var mb = e.target.closest('.intro-more');
+    if (mb){
+      var p = warBody.querySelector('.war-intro');
+      var open = p.classList.toggle('clamp') === false;
+      s.introOpen = open;
+      mb.textContent = open ? 'Zwiń ▴' : 'Czytaj więcej ▾';
+      mb.setAttribute('aria-expanded', String(open));
       return;
     }
     var eb = e.target.closest('[data-ev]');
     if (eb) openEvent(mode, parseInt(eb.dataset.ev, 10));
   });
-  $('close-war').addEventListener('click', function(){ warSheet.classList.remove('open'); syncBodyState(); });
+  function closeWarSheet(){
+    warSheet.classList.remove('open', 'expanded');
+    syncBodyState();
+    if (mobileMQ.matches && mode !== 'modern' && !panel.classList.contains('open')){
+      var pts = warPoints(warState[mode]);
+      if (pts.length) fitWar({ bounds: pts });
+    }
+  }
+  $('close-war').addEventListener('click', closeWarSheet);
 
   function openEvent(key, i){
     var s = buildWar(key), e = s.events[i];
@@ -2034,11 +2122,11 @@
     setHash('', e.ev.id);
     var mk = s.markers[e.ev.id] || null;
     // Opening an event outside the selected day/period clears that filter so the event is visible.
-    if (s.day && !activeOn(e, s.day)){ s.day = null; applyWarFilter(s); }
+    if (s.day && !activeOn(e, s.day)){ s.day = null; applyWarFilter(s); syncWarChip(); }
     setActiveWar(mk);
     if (mk){
       if (s.filter[e.ev.type] === false){ s.filter[e.ev.type] = true; applyWarFilter(s); }
-      setTimeout(function(){ revealIn(s.layer, mk, function(){ setActiveWar(mk); }); }, wasOpen ? 0 : 60);
+      setTimeout(function(){ revealIn(s.layer, mk, function(){ setActiveWar(mk); }, 15); }, wasOpen ? 0 : 60);
     }
   }
   function openEventById(key, id){
@@ -2083,7 +2171,7 @@
     if (e.key === '/' && !typing && !info.open){ e.preventDefault(); searchInput.focus(); }
     else if (e.key === 'Escape' && !info.open){
       if (routesSheet.classList.contains('open')){ routesSheet.classList.remove('open'); syncBodyState(); }
-      else if (warSheet.classList.contains('open')){ warSheet.classList.remove('open'); syncBodyState(); }
+      else if (warSheet.classList.contains('open')) closeWarSheet();
       else if (panel.classList.contains('open')) closeSheets();
       else if (placesList.classList.contains('open')){ placesList.classList.remove('open'); syncBodyState(); }
     }
@@ -2095,12 +2183,20 @@
     var y0 = null;
     var handle = sheet.querySelector('.sheet-head');
     handle.addEventListener('touchstart', function(e){ y0 = e.touches[0].clientY; }, { passive: true });
+    function shut(){
+      if (sheet === panel) closeSheets(); else if (sheet === warSheet) closeWarSheet(); else { sheet.classList.remove('open'); syncBodyState(); }
+    }
     handle.addEventListener('touchend', function(e){
-      if (y0 !== null && e.changedTouches[0].clientY - y0 > 60){
-        if (sheet === panel) closeSheets(); else { sheet.classList.remove('open'); syncBodyState(); }
-      }
+      if (y0 === null) return;
+      var dy = e.changedTouches[0].clientY - y0;
       y0 = null;
+      if (e.target.closest('button')) return;
+      if (dy < -40) sheet.classList.add('expanded');
+      else if (dy > 60){ if (sheet.classList.contains('expanded')) sheet.classList.remove('expanded'); else shut(); }
+      else if (Math.abs(dy) < 8) sheet.classList.toggle('expanded');
     });
+    var grab = sheet.querySelector('.grabber');
+    if (grab) grab.addEventListener('click', function(){ sheet.classList.toggle('expanded'); });
   });
 
   readHash();
