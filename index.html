@@ -340,6 +340,34 @@
   .war-label{font-family:'Special Elite','Courier New',monospace;font-size:12px;white-space:nowrap;color:var(--lc);text-shadow:0 0 3px #F4EAD0,0 0 3px #F4EAD0,0 0 6px #F4EAD0;letter-spacing:.3px;pointer-events:none;transform-origin:center}
   .war-label span{display:inline-block}
   .war-chip{display:none}
+  /* Buses: stops layer, stop card, "getting there by bus" block in routes */
+  #bus-btn{display:inline-flex;align-items:center;padding-left:11px;padding-right:11px}
+  .bus-stop{width:20px;height:20px;border-radius:6px;background:#0B5CAD;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;color:#fff}
+  .bus-stop svg{width:12px;height:12px}
+  .bus-stop.near{box-shadow:0 0 0 3px rgba(11,92,173,0.45),0 1px 4px rgba(0,0,0,0.5)}
+  .is-active .bus-stop{transform:scale(1.3);background:var(--accent);color:var(--accent-ink)}
+  .ln{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:20px;padding:0 6px;border-radius:5px;font-size:11.5px;font-weight:800;color:#fff;background:var(--lc,#555);border:none;letter-spacing:0}
+  button.ln{cursor:pointer}
+  button.ln[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1px}
+  .ln-row{display:flex;flex-wrap:wrap;gap:5px}
+  .deps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+  .deps li{display:grid;grid-template-columns:48px auto 1fr auto;gap:8px;align-items:center;padding:7px 2px;font-size:13px}
+  .deps li + li{border-top:1px dashed var(--border)}
+  .deps b{font-variant-numeric:tabular-nums}
+  .deps .to{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .deps .in{font-size:11.5px;font-weight:700;color:var(--accent);white-space:nowrap}
+  .tt-table{font-size:12.5px;line-height:1.7;font-variant-numeric:tabular-nums;padding:4px 14px 10px}
+  .tt-table div{display:grid;grid-template-columns:28px 1fr;gap:8px}
+  .tt-table div b{color:var(--accent)}
+  .tt-table span{color:var(--text);word-spacing:4px}
+  .bus-note{font-size:11.5px;color:var(--muted);line-height:1.5}
+  .bus-note a{color:var(--muted)}
+  .bus-near{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+  .bus-near button{width:100%;display:flex;flex-direction:column;gap:5px;text-align:left;border:1px solid var(--border);background:var(--faint);color:var(--text);border-radius:12px;padding:10px 12px}
+  .bus-near .bn-head{display:flex;justify-content:space-between;gap:8px;font-weight:700;font-size:13.5px}
+  .bus-near .bn-head small{color:var(--muted);font-weight:600;font-size:11.5px;white-space:nowrap}
+  .bus-near .bn-next{font-size:12px;color:var(--muted)}
+  .bus-near .bn-next b{color:var(--text)}
   /* Time scrubber (war modes): a slider that snaps to dates / periods */
   .war-time{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:14px;width:min(560px,calc(100% - 24px))}
   .war-time[hidden]{display:none}
@@ -360,7 +388,7 @@
   .war-time .wt-ticks i.on{background:var(--accent);opacity:1;height:8px}
   .war-time .icon-btn{width:34px;height:34px;flex-shrink:0;font-size:20px;line-height:1}
   .war-time .icon-btn[disabled]{opacity:.3}
-  .seg-btn .sh{display:none}
+  .seg-btn .sh,#sat-btn .sh{display:none}
   .intro-more{display:none}
   @media (max-width: 860px){
     .war-cartouche,.compass{display:none}
@@ -396,8 +424,8 @@
     .war-label{font-size:11px}
   }
   @media (max-width: 480px){
-    .seg-btn .lg{display:none}
-    .seg-btn .sh{display:inline}
+    .seg-btn .lg,#sat-btn .lg{display:none}
+    .seg-btn .sh,#sat-btn .sh{display:inline}
     .seg.pill{gap:2px}
     .seg.pill .seg-btn{padding:8px 7px;letter-spacing:0;font-size:11px}
   }
@@ -581,9 +609,11 @@
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
         </button>
         <span class="sep" aria-hidden="true"></span>
-        <button id="sat-btn" aria-pressed="false" title="Włącz lub wyłącz mapę satelitarną">SATELITA</button>
+        <button id="sat-btn" aria-pressed="false" title="Włącz lub wyłącz mapę satelitarną"><span class="lg">SATELITA</span><span class="sh">SAT.</span></button>
         <span class="sep" aria-hidden="true"></span>
         <button id="ov-btn" aria-pressed="false" title="Nakładka: zdjęcie lotnicze z 1944 r. na mapie współczesnej">1944</button>
+        <span class="sep" aria-hidden="true"></span>
+        <button id="bus-btn" aria-pressed="false" title="Przystanki i rozkłady autobusów (Pruszków, GPA)" aria-label="Przystanki autobusowe"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="3" width="16" height="15" rx="3"/><path d="M4 11h16M8 21v-3M16 21v-3"/><circle cx="8.5" cy="14.5" r=".6" fill="currentColor"/><circle cx="15.5" cy="14.5" r=".6" fill="currentColor"/></svg></button>
       </div>
       <div class="ov-panel glass" id="opacity-ctrl">
         <label for="opacity-slider">1944</label>
@@ -709,6 +739,7 @@
     <ul class="legend">
       <li><span class="sw"><span class="marker-pin"><i></i></span></span>Pojedynczy obiekt pod dokładnym współczesnym adresem</li>
       <li><span class="sw"><span class="marker-pin approx"><i></i></span></span>Lokalizacja przybliżona (skrzyżowanie, teren zakładu, rejon) — szczegóły w karcie</li>
+      <li><span class="sw"><span class="bus-stop" style="display:inline-flex"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4" y="3" width="16" height="15" rx="3"/><path d="M4 11h16M8 21v-3M16 21v-3"/></svg></span></span>Przystanek autobusowy (przycisk z autobusem obok „1944”) — najbliższe odjazdy linii miejskich Pruszkowa i GPA</li>
       <li><span class="sw"><span class="marker-group">3</span></span>Kilka obiektów pod jednym adresem — kliknij, aby rozłożyć na osobne punkty</li>
       <li><span class="sw"><span class="cluster"><span>12</span></span></span>Skupisko punktów — przybliż, aby rozdzielić</li>
       <li><span class="sw"><span class="badge conf-wysoka"><span class="dot"></span></span></span>Pewność informacji: <span style="color:var(--ok)">wysoka</span> · <span style="color:var(--mid)">średnia</span> · <span style="color:var(--low)">niska</span></li>
@@ -757,11 +788,12 @@
 <script src="data/routes.js"></script>
 <script src="data/wars.js"></script>
 <script src="data/artifacts.js"></script>
+<script src="data/transit.js"></script>
 <script>
 (function(){
   var D = window.ZBIKOW || {};
   var PLACES = D.places || [], UNMAPPED = D.unmapped || [], PHOTOS = D.photos || {}, ROUTES = D.routes || [];
-  var WARS = D.wars || {}, ARTIFACTS = D.artifacts || {};
+  var WARS = D.wars || {}, ARTIFACTS = D.artifacts || {}, TRANSIT = D.transit || null;
   // Data lives in data/*.js (see the header of each file for its schema).
 
   var mobileMQ = window.matchMedia('(max-width: 860px)');
@@ -1544,6 +1576,7 @@
         '<a class="btn" href="' + esc(gmapsUrl(r)) + '" target="_blank" rel="noopener">Nawiguj w Google Maps</a>' +
         '<button class="btn" id="route-locate" aria-pressed="' + String(!!geoWatch) + '">' + (geoWatch ? 'Ukryj moją pozycję' : 'Gdzie jestem?') + '</button>' +
       '</div>' +
+      transitRouteHTML(r) +
       '<div><div class="section-label">Przystanki</div><ol class="stops">' + stopsHTML + '</ol></div>' +
       (extrasHTML ? '<div><div class="section-label">Powiązane miejsca</div><ul class="sibs extras">' + extrasHTML + '</ul></div>' : '') +
       '<div class="route-foot"><button class="btn" id="route-all">← Wszystkie trasy</button><button class="btn" id="route-end">Zakończ trasę</button></div>' +
@@ -2049,6 +2082,10 @@
     setPressed('ww2', m === 'ww2');
     mapEl.classList.toggle('war-mode', m !== 'modern');
     document.body.classList.toggle('war-on', m !== 'modern');
+    if (TRANSIT){
+      if (m !== 'modern'){ map.removeLayer(busLayer); busLineLayer.clearLayers(); busShown = {}; }
+      else if (store('zbikow-bus') === '1') busLayer.addTo(map);
+    }
     var cart = $('war-cartouche');
     cart.hidden = m === 'modern';
     $('war-compass').toggleAttribute('hidden', m === 'modern');
@@ -2272,6 +2309,197 @@
       entry.nLabel = norm(entry.label); entry.nRest = norm(entry.sub + ' ' + entry.type);
       searchIndex.push(entry);
     });
+  });
+
+  // --- Buses (data/transit.js: GTFS of Pruszków city lines + GPA, baked by tools/import_transit.py) ---
+  var busLayer = L.layerGroup(), busLineLayer = L.layerGroup().addTo(map), busMarkers = {}, busShown = {};
+  var busSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><rect x="4" y="3" width="16" height="15" rx="3"/><path d="M4 11h16M8 21v-3M16 21v-3"/></svg>';
+  function easter(y){
+    var a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+    var h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+    return new Date(y, Math.floor((h + l - 7 * m + 114) / 31) - 1, (h + l - 7 * m + 114) % 31 + 1);
+  }
+  function isHoliday(dt){
+    var md = (dt.getMonth() + 1) + '-' + dt.getDate();
+    if (['1-1','1-6','5-1','5-3','8-15','11-1','11-11','12-24','12-25','12-26'].indexOf(md) !== -1) return true;
+    var e = easter(dt.getFullYear()), day = 864e5, t = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()).getTime();
+    return [0, 1, 60].some(function(off){ return Math.round((t - e.getTime()) / day) === off; });
+  }
+  // Timetables are in Warsaw time, whatever the device's time zone.
+  function warsawNow(){
+    try { return new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Warsaw' })); } catch (e) { return new Date(); }
+  }
+  function dayType(dt){ return dt.getDay() === 0 || isHoliday(dt) ? 'su' : dt.getDay() === 6 ? 'sa' : 'wd'; }
+  var DAY_LABEL = { wd: 'dzień roboczy', sa: 'sobota', su: 'niedziela i święta' };
+  function hm(m){ m = m % 1440; return Math.floor(m / 60) + ':' + ('0' + (m % 60)).slice(-2); }
+  function lineOf(key){ return key.split('|')[0]; }
+  function lnChip(rk, pressed){
+    var r = TRANSIT.routes[rk] || { n: rk, c: '#555', op: '' };
+    var tag = pressed == null ? 'span' : 'button';
+    return '<' + tag + ' class="ln" style="--lc:' + r.c + '"' + (pressed == null ? '' : ' data-line="' + esc(rk) + '" aria-pressed="' + String(!!pressed) + '"') +
+      ' title="' + esc((r.op === 'GPA' ? 'GPA ' : 'Linia miejska ') + r.n + ' · ' + r.long) + '">' + esc(r.n) + '</' + tag + '>';
+  }
+  function stopLines(st){
+    var seen = {}, out = [];
+    Object.keys(st.d).forEach(function(k){ var l = lineOf(k); if (!seen[l]){ seen[l] = 1; out.push(l); } });
+    return out;
+  }
+  // Next departures from a stop: today's timetable from now on, topped up with tomorrow's first runs.
+  function nextDeps(st, n, now){
+    now = now || warsawNow();
+    var t = dayType(now), m = now.getHours() * 60 + now.getMinutes(), out = [];
+    Object.keys(st.d).forEach(function(k){ (st.d[k][t] || []).forEach(function(x){ if (x >= m) out.push({ k: k, t: x, wait: x - m }); }); });
+    out.sort(function(a, b){ return a.t - b.t; });
+    if (out.length < n){
+      var tm = new Date(now.getTime() + 864e5), t2 = dayType(tm), more = [];
+      Object.keys(st.d).forEach(function(k){ (st.d[k][t2] || []).forEach(function(x){ more.push({ k: k, t: x, wait: 1440 - m + x, tomorrow: true }); }); });
+      more.sort(function(a, b){ return a.t - b.t; });
+      out = out.concat(more.slice(0, n - out.length));
+    }
+    return out.slice(0, n);
+  }
+  function waitLabel(d){ return d.tomorrow ? 'jutro' : d.wait < 1 ? 'teraz' : d.wait < 60 ? 'za ' + d.wait + ' min' : 'za ' + Math.floor(d.wait / 60) + ' h ' + (d.wait % 60) + ' min'; }
+  function transitValidity(){
+    var w = warsawNow(), today = w.getFullYear() + '-' + ('0' + (w.getMonth() + 1)).slice(-2) + '-' + ('0' + w.getDate()).slice(-2);
+    return today > TRANSIT.validTo ? '<div class="warn">Rozkład w mapie był ważny do ' + esc(TRANSIT.validTo) + ' — może być nieaktualny.</div>' : '';
+  }
+  function transitNote(){
+    return '<p class="bus-note">Rozkład planowy z otwartych danych GTFS (komunikacja miejska Pruszkowa i GPA, przez zbiorkom.live), ważny ' +
+      esc(TRANSIT.validFrom) + ' – ' + esc(TRANSIT.validTo) + '. Opóźnień nie widać — aktualne odjazdy: <a href="https://rozkladjazdy.pruszkow.pl/" target="_blank" rel="noopener">rozkladjazdy.pruszkow.pl</a>, <a href="https://gpagrodzisk.pl/rozklad" target="_blank" rel="noopener">gpagrodzisk.pl</a>.</p>';
+  }
+  function busIcon(near){ return L.divIcon({ className: '', html: '<div class="bus-stop' + (near ? ' near' : '') + '">' + busSvg + '</div>', iconSize: [20,20], iconAnchor: [10,10] }); }
+  if (TRANSIT){
+    TRANSIT.stops.forEach(function(st){
+      var mk = L.marker([st.lat, st.lng], { icon: busIcon(false), keyboard: true, zIndexOffset: -200 });
+      mk.bindTooltip('<b>' + esc(st.n) + '</b><br>linie: ' + esc(stopLines(st).map(function(l){ return TRANSIT.routes[l] ? TRANSIT.routes[l].n : l; }).join(', ')), { className: 'tt', direction: 'top', offset: [0, -10] });
+      mk.on('click', function(){ openBusStop(st.id); });
+      busMarkers[st.id] = mk;
+      busLayer.addLayer(mk);
+    });
+  } else $('bus-btn').hidden = true;
+  var stopById = {};
+  (TRANSIT ? TRANSIT.stops : []).forEach(function(st){ stopById[st.id] = st; });
+  function setBus(on, quiet){
+    if (!TRANSIT) return;
+    if (on) busLayer.addTo(map); else { map.removeLayer(busLayer); busLineLayer.clearLayers(); busShown = {}; }
+    $('bus-btn').setAttribute('aria-pressed', String(on));
+    store('zbikow-bus', on ? '1' : '0');
+    if (on && !quiet) showToast('Przystanki autobusowe: kliknij przystanek, aby zobaczyć najbliższe odjazdy.');
+  }
+  $('bus-btn').addEventListener('click', function(e){ e.stopPropagation(); setBus(!map.hasLayer(busLayer)); });
+  if (store('zbikow-bus') === '1') setBus(true, true);
+  function drawBusLine(rk, on){
+    busShown[rk] = on;
+    busLineLayer.clearLayers();
+    var pts = [];
+    Object.keys(busShown).forEach(function(k){
+      if (!busShown[k]) return;
+      var r = TRANSIT.routes[k];
+      (TRANSIT.shapes[k] || []).forEach(function(run){
+        L.polyline(run, { color: '#fff', weight: 7, opacity: 0.9, interactive: false }).addTo(busLineLayer);
+        L.polyline(run, { color: r.c, weight: 4, opacity: 0.95, dashArray: '10 6', interactive: false }).addTo(busLineLayer);
+        run.forEach(function(p){ pts.push(p); });
+      });
+    });
+    return pts;
+  }
+  var activeBusMk = null;
+  function openBusStop(id){
+    var st = stopById[id];
+    if (!st) return;
+    if (mode !== 'modern') setMode('modern', true);
+    if (!map.hasLayer(busLayer)) setBus(true, true);
+    var t = dayType(warsawNow()), deps = nextDeps(st, 10);
+    var byDir = Object.keys(st.d).map(function(k){
+      var times = st.d[k][t] || [], hours = {};
+      times.forEach(function(x){ var h = Math.floor(x / 60) % 24; (hours[h] = hours[h] || []).push(('0' + (x % 60)).slice(-2)); });
+      var rows = Object.keys(hours).sort(function(a, b){ return a - b; }).map(function(h){ return '<div><b>' + h + '</b><span>' + hours[h].join(' ') + '</span></div>'; }).join('');
+      return '<details class="notes"><summary>' + lnChip(lineOf(k)) + ' → ' + esc(k.split('|')[1] || '') + ' <small>(' + times.length + ')</small></summary>' +
+        '<div class="tt-table">' + (rows || '<div><span>Brak kursów w tym dniu.</span></div>') + '</div></details>';
+    }).join('');
+    galleryLists = [];
+    $('panel-kicker').textContent = 'Przystanek autobusowy';
+    panelBody.innerHTML = '<div class="panel-inner">' +
+      '<div class="badges"><span class="badge" style="color:#5BA4F0"><span class="dot"></span>Przystanek</span></div>' +
+      '<div><h2 class="display title" id="panel-title">' + esc(st.n) + '</h2></div>' +
+      '<div><div class="section-label">Linie · kliknij, aby pokazać przebieg na mapie</div><div class="ln-row">' +
+        stopLines(st).map(function(l){ return lnChip(l, !!busShown[l]); }).join('') + '</div></div>' +
+      transitValidity() +
+      '<div><div class="section-label">Najbliższe odjazdy · ' + DAY_LABEL[t] + '</div>' +
+        (deps.length ? '<ul class="deps">' + deps.map(function(d){
+          return '<li><b>' + hm(d.t) + '</b>' + lnChip(lineOf(d.k)) + '<span class="to">→ ' + esc(d.k.split('|')[1] || '') + '</span><span class="in">' + waitLabel(d) + '</span></li>';
+        }).join('') + '</ul>' : '<p class="list-empty">Brak odjazdów w rozkładzie.</p>') + '</div>' +
+      '<div><div class="section-label">Rozkład na dziś (' + DAY_LABEL[t] + ')</div>' + byDir + '</div>' +
+      transitNote() +
+      '</div>';
+    panelBody.scrollTop = 0;
+    btn1944.hidden = true;
+    current = { kind: 'stop', stopId: id };
+    setHash('');
+    var wasOpen = panel.classList.contains('open');
+    showSheet(panel);
+    setActiveMarker(null);
+    if (activeBusMk && activeBusMk._icon) activeBusMk._icon.classList.remove('is-active');
+    activeBusMk = busMarkers[id];
+    setTimeout(function(){
+      var ll = L.latLng(st.lat, st.lng), z = Math.max(map.getZoom(), 16);
+      map.flyTo(offsetCenter(ll, z), z, { duration: 0.5 });
+      map.once('moveend', function(){ if (activeBusMk && activeBusMk._icon) activeBusMk._icon.classList.add('is-active'); });
+    }, wasOpen ? 0 : 60);
+  }
+  panelBody.addEventListener('click', function(e){
+    var b = e.target.closest('[data-line]');
+    if (b){
+      var on = b.getAttribute('aria-pressed') !== 'true';
+      b.setAttribute('aria-pressed', String(on));
+      var pts = drawBusLine(b.dataset.line, on);
+      if (on && pts.length) map.fitBounds(L.latLngBounds(pts), bottomSheets() ? { paddingTopLeft: [30, 80], paddingBottomRight: [30, panel.offsetHeight + 30] } : { paddingTopLeft: [60, 80], paddingBottomRight: [panel.offsetWidth + 60, 100] });
+      return;
+    }
+    var sb = e.target.closest('[data-busstop]');
+    if (sb) openBusStop(sb.dataset.busstop);
+  });
+  routesBody.addEventListener('click', function(e){
+    var sb = e.target.closest('[data-busstop]');
+    if (sb){ e.stopPropagation(); openBusStop(sb.dataset.busstop); return; }
+    if (e.target.closest('#route-bus')){
+      setBus(!map.hasLayer(busLayer), true);
+      renderRouteDetail(activeRoute);
+      var bb = routesBody.querySelector('.bus-block'); if (bb) bb.open = true;
+    }
+  });
+  // Walking distance ≈ 1.25 × straight line, 75 m per minute.
+  function nearStops(ll, max, n){
+    return TRANSIT.stops.map(function(st){ return { st: st, d: ll.distanceTo([st.lat, st.lng]) }; })
+      .filter(function(x){ return x.d <= max; }).sort(function(a, b){ return a.d - b.d; }).slice(0, n);
+  }
+  function nearHTML(list, label){
+    return '<div class="section-label">' + label + '</div><ul class="bus-near">' + list.map(function(x){
+      var dep = nextDeps(x.st, 3), walk = Math.max(1, Math.round(x.d * 1.25 / 75));
+      return '<li><button data-busstop="' + x.st.id + '"><span class="bn-head"><span>' + busSvgInline + ' ' + esc(x.st.n) + '</span><small>' + Math.round(x.d * 1.25 / 10) * 10 + ' m · ' + walk + ' min pieszo</small></span>' +
+        '<span class="ln-row">' + stopLines(x.st).map(function(l){ return lnChip(l); }).join('') + '</span>' +
+        (dep.length ? '<span class="bn-next">Najbliższe: ' + dep.map(function(d){ return '<b>' + hm(d.t) + '</b> ' + esc(TRANSIT.routes[lineOf(d.k)].n) + (d.tomorrow ? ' (jutro)' : ''); }).join(' · ') + '</span>' : '') +
+        '</button></li>';
+    }).join('') + '</ul>';
+  }
+  var busSvgInline = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5BA4F0" stroke-width="2.4" style="vertical-align:-2px" aria-hidden="true"><rect x="4" y="3" width="16" height="15" rx="3"/><path d="M4 11h16M8 21v-3M16 21v-3"/></svg>';
+  function transitRouteHTML(r){
+    if (!TRANSIT || !r || !r.stops.length) return '';
+    var a = recLatLng(r.stops[0]), z = recLatLng(r.stops[r.stops.length - 1]);
+    if (!a) return '';
+    var start = nearStops(a, 600, 3), end = z && a.distanceTo(z) > 400 ? nearStops(z, 600, 2) : [];
+    if (!start.length && !end.length) return '';
+    return '<details class="notes bus-block"' + (store('zbikow-bus') === '1' ? ' open' : '') + '><summary>Dojazd autobusem</summary><div class="notes-body" style="display:flex;flex-direction:column;gap:12px">' +
+      (start.length ? nearHTML(start, 'Przystanki przy starcie (przystanek 1)') : '') +
+      (end.length ? nearHTML(end, 'Powrót — przystanki przy mecie') : '') +
+      '<button class="btn" id="route-bus" aria-pressed="' + String(map.hasLayer(busLayer)) + '">' + (map.hasLayer(busLayer) ? 'Ukryj przystanki na mapie' : 'Pokaż przystanki na mapie') + '</button>' +
+      transitNote() + '</div></details>';
+  }
+  if (TRANSIT) TRANSIT.stops.forEach(function(st){
+    var entry = { label: st.n, sub: 'Przystanek · linie ' + stopLines(st).map(function(l){ return TRANSIT.routes[l].n; }).join(', '), type: 'przystanek autobusowy',
+                  go: function(){ openBusStop(st.id); }, mapped: true };
+    entry.nLabel = norm(entry.label + ' przystanek'); entry.nRest = norm(entry.sub + ' autobus bus');
+    searchIndex.push(entry);
   });
 
   // --- Info dialog ---

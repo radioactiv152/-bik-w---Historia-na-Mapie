@@ -38,11 +38,23 @@ na początku każdego pliku jest opis pól.
 | `data/routes.js` | trasy spacerowe |
 | `data/wars.js` | warstwy „I wojna światowa” i „II wojna światowa”: wydarzenia, typy, linie frontu i kierunki ataków |
 | `data/artifacts.js` | „ARTEFAKTY” i „CO TU PRODUKOWANO” dla miejsc, z dowolną liczbą pozycji i zdjęć |
+| `data/transit.js` | przystanki i rozkłady autobusów (linie miejskie Pruszkowa i GPA) — generowane, nie edytuj ręcznie |
 
 Warstwy wojenne generują z arkuszy badawczych skrypty `tools/import_ww1_xlsx.py`
 (`python3 tools/import_ww1_xlsx.py zbikow_I_wojna_swiatowa_research_v2.xlsx`) i `tools/import_ww2_xlsx.py`
 (`python3 tools/import_ww2_xlsx.py zbikow_II_wojna_swiatowa_research_2.xlsx`; obrys obozu w `tools/dulag_area.json`). Współrzędne wpisane w arkuszu
 (kolumny „Szer. geogr.” i „Dł. geogr.”) mają pierwszeństwo przed punktami wyznaczonymi z OpenStreetMap.
+
+## Autobusy
+
+Przycisk z autobusem obok „1944” pokazuje przystanki w okolicy Żbikowa; karta przystanku ma najbliższe odjazdy
+(czas warszawski, dzień roboczy / sobota / niedziela i święta) i cały rozkład na dziś, a kliknięcie numeru linii
+rysuje jej przebieg. W trasach spacerowych sekcja „Dojazd autobusem” podaje przystanki przy starcie i mecie.
+
+Dane pochodzą z otwartych plików GTFS (komunikacja miejska Pruszkowa i GPA, republikowane przez
+[zbiorkom.live](https://zbiorkom.live)). `python3 tools/import_transit.py` pobiera je i zapisuje `data/transit.js`;
+workflow Pages robi to przy każdej publikacji i co poniedziałek, więc rozkład na stronie sam się odświeża.
+To rozkład planowy — bez opóźnień na żywo.
 
 ## Trasy spacerowe
 
