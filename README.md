@@ -39,6 +39,10 @@ na początku każdego pliku jest opis pól.
 | `data/wars.js` | warstwy „I wojna światowa” i „II wojna światowa”: wydarzenia, typy, linie frontu i kierunki ataków |
 | `data/artifacts.js` | „ARTEFAKTY” i „CO TU PRODUKOWANO” dla miejsc, z dowolną liczbą pozycji i zdjęć |
 
+Warstwę I wojny światowej generuje z arkusza badawczego skrypt `tools/import_ww1_xlsx.py`
+(`python3 tools/import_ww1_xlsx.py zbikow_I_wojna_swiatowa_research_v2.xlsx`). Współrzędne wpisane w arkuszu
+(kolumny „Szer. geogr.” i „Dł. geogr.”) mają pierwszeństwo przed punktami wyznaczonymi z OpenStreetMap.
+
 ## Trasy spacerowe
 
 Pięć tras tematycznych (dane `ROUTES` w `index.html`). Przebieg po ulicach został wyznaczony raz

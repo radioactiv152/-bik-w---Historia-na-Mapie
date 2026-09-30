@@ -274,6 +274,40 @@
   .line-list small{display:block;color:var(--muted);font-size:11.5px}
   .todo{display:inline-block;margin-left:6px;font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--mid);border:1px solid currentColor;border-radius:999px;padding:0 6px}
   .note.approx{border-left-color:var(--mid);opacity:1}
+  /* impacts: shelling damage and shell hits */
+  .war-pin.impact::before{content:"";position:absolute;width:34px;height:34px;border-radius:50%;background:radial-gradient(circle,rgba(249,115,22,0.55) 0%,rgba(249,115,22,0.18) 45%,rgba(249,115,22,0) 70%);animation:impactPulse 2.8s ease-out infinite}
+  .war-pin{position:relative}
+  @keyframes impactPulse{0%{transform:scale(.6);opacity:.9}70%{transform:scale(1.35);opacity:0}100%{opacity:0}}
+  .war-pin.dim{opacity:.22;filter:grayscale(.7)}
+  .war-pin.dim::before{display:none}
+  .fire-line{animation:fireDash 1.4s linear infinite}
+  @keyframes fireDash{to{stroke-dashoffset:-22}}
+  .cert-pot{color:var(--ok);background:rgba(var(--ok-rgb),0.14)}
+  .cert-rel{color:var(--mid);background:rgba(var(--accent-rgb),0.14)}
+  .cert-hip{color:var(--low);background:rgba(var(--low-rgb),0.14)}
+  .side-badge{color:var(--text);background:rgba(var(--ink-rgb),0.08)}
+  .side-badge i{display:inline-block;width:10px;height:3px;border-radius:2px;background:var(--sc)}
+  .days{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+  .days button{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:44px;border:1px solid var(--border-strong);background:var(--faint);color:var(--text);border-radius:10px;padding:6px 8px;font-weight:700;font-size:14px;line-height:1.1}
+  .days button small{font-size:9.5px;font-weight:700;color:var(--muted);letter-spacing:.3px;text-transform:uppercase}
+  .days button.has{border-color:rgba(var(--accent-rgb),0.6)}
+  .days button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .days button[aria-pressed="true"] small{color:var(--accent-ink)}
+  .day-note{margin-top:8px;font-size:13px;line-height:1.55;border-left:3px solid var(--accent);padding:6px 0 6px 12px;background:rgba(var(--accent-rgb),0.06);border-radius:0 8px 8px 0}
+  .day-note b{display:block;font-size:11px;letter-spacing:.4px;text-transform:uppercase;color:var(--accent)}
+  .timeline li.off{opacity:.35}
+  .chron{list-style:none;margin:0;padding:0 14px 12px}
+  .chron li{display:flex;gap:10px;padding:8px 0;font-size:13px;line-height:1.5}
+  .chron li + li{border-top:1px dashed var(--border)}
+  .chron .cd{flex-shrink:0;width:86px;font-weight:700;color:var(--accent);font-size:12px}
+  .chron .sc{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;border-radius:999px;padding:0 6px;margin-right:6px;vertical-align:1px;border:1px solid currentColor}
+  .chron .sc.front{color:var(--mid)}
+  .chron .sc.lok{color:var(--ok)}
+  .chron small{display:block;color:var(--muted);font-size:11px}
+  .src-list{list-style:none;margin:0;padding:0 14px 12px;display:flex;flex-direction:column;gap:8px;font-size:12.5px;line-height:1.45}
+  .src-list b{color:var(--accent);margin-right:6px}
+  .src-list a{color:var(--text)}
+  .src-list small{display:block;color:var(--muted)}
 
   /* 1944 overlay control (next to the map style buttons) */
   .ov-panel{margin-top:8px;display:none;align-items:center;gap:10px;padding:9px 14px;border-radius:14px;font-size:12px;color:var(--muted);font-weight:700;width:max-content}
@@ -860,8 +894,9 @@
     var n = norm(conf), cls = n.indexOf('wysoka') === 0 ? 'conf-wysoka' : n.indexOf('srednia') === 0 ? 'conf-srednia' : n.indexOf('niska') === 0 ? 'conf-niska' : '';
     return '<span class="badge ' + cls + '" title="Pewność informacji"><span class="dot"></span>Pewność: ' + esc(conf) + '</span>';
   }
-  function factsBlock(item, sources){
+  function factsBlock(item, sources, extra){
     var rows = '';
+    (extra || []).forEach(function(f){ if (f[1]) rows += '<dt>' + esc(f[0]) + '</dt><dd>' + esc(f[1]) + '</dd>'; });
     if (item.dating) rows += '<dt>Datowanie</dt><dd>' + esc(item.dating) + '</dd>';
     if (item.source) rows += '<dt>Źródło</dt><dd>' + esc(item.source) + '</dd>';
     if (sources && sources.length) rows += '<dt>Źródła</dt><dd>' + sources.map(function(s){
@@ -927,10 +962,10 @@
     }).join('');
     return html ? '<div class="feat-links">' + html + '</div>' : '';
   }
-  // opts (war cards): { photos, badges, approx, sources, noSiblings, modernLink }
+  // opts (war cards): { photos, badges, approx, sources, facts, addr, hasPoint, noSiblings, modernLink }
   function renderRecordHTML(item, place, opts){
     opts = opts || {};
-    var address = place ? place.address : null;
+    var address = opts.addr || (place ? place.address : null);
     var photos = opts.photos || PHOTOS[item.origId];
     return '<div class="panel-inner">' + galleryBlock(item.origId, photos) +
         '<div class="badges">' + (opts.badges || '') +
@@ -940,10 +975,10 @@
         '<div>' +
           '<h2 class="display title" id="panel-title">' + esc(item.name) + '</h2>' +
           (address ? '<div class="addr">' + pinSvg + '<span>' + esc(address) + '</span></div>'
-                   : (item.locationDesc ? '<div class="addr">' + pinSvg + '<span>' + esc(item.locationDesc) + ' <span class="flag">brak dokładnego adresu</span></span></div>' : '')) +
+                   : (item.locationDesc ? '<div class="addr">' + pinSvg + '<span>' + esc(item.locationDesc) + (opts.hasPoint ? '' : ' <span class="flag">brak punktu na mapie</span>') + '</span></div>' : '')) +
         '</div>' +
         featBlock(item.origId) +
-        factsBlock(item, opts.sources) +
+        factsBlock(item, opts.sources, opts.facts) +
         (opts.approx ? '<div class="note approx">' + esc(opts.approx) + '</div>' : '') +
         (item.shortDesc ? '<p class="desc">' + esc(item.shortDesc) + '</p>' : '') +
         notesBlock(item) +
@@ -1521,8 +1556,15 @@
     return '<span class="' + cls + '" style="--wc:' + ty.color + '" aria-hidden="true"><span>' + esc(ty.glyph) + '</span></span>';
   }
   // An event inherits name, text, dating, photos and position from the record it references (ev.ref);
-  // its own fields override them.
-  function resolveEvent(ev){
+  // its own fields override them. ev.link only points the "show on the modern map" button at a record.
+  function resolveSources(list, war){
+    return (list || []).map(function(s){
+      if (typeof s !== 'string') return s;
+      var d = war && war.sources && war.sources[s];
+      return d ? { name: s + ' · ' + d.name, url: d.url } : { name: s };
+    });
+  }
+  function resolveEvent(ev, war){
     var rec = ev.ref != null ? recordByOrig[ev.ref] : null;
     var base = rec ? rec.item : {}, item = {};
     for (var k in base) item[k] = base[k];
@@ -1531,16 +1573,44 @@
     if (!item.name) item.name = 'Wydarzenie';
     if (ev.date) item.dating = ev.date;
     if (ev.desc) item.shortDesc = ev.desc;
+    if (ev.category) item.type = ev.category;
+    if (ev.where) item.locationDesc = ev.where;
+    if (ev.note) item.note = ev.note;
+    if (!rec){ item.source = ''; }
     var place = null, ll = null;
     if (ev.lat != null && ev.lng != null) ll = L.latLng(ev.lat, ev.lng);
     else if (ev.at && placeById[ev.at]){ place = placeById[ev.at]; ll = L.latLng(place.lat, place.lng); }
     else if (rec && rec.place){ place = rec.place; ll = L.latLng(place.lat, place.lng); }
-    return { ev: ev, item: item, place: place, ll: ll, rec: rec,
+    var linkRec = ev.link != null ? recordByOrig[ev.link] : rec;
+    return { ev: ev, item: item, place: place, ll: ll, rec: rec, sources: resolveSources(ev.sources, war),
+             modernLink: linkRec && linkRec.place ? linkRec.item.origId : null,
              photos: ev.photos && ev.photos.length ? ev.photos : (rec ? PHOTOS[base.origId] : null) };
   }
-  function warPinIcon(t){
+  function warPinIcon(t, dim){
     var ty = warType(t);
-    return L.divIcon({ className: '', html: '<div class="war-pin" style="--wc:' + ty.color + '"><i><span>' + esc(ty.glyph) + '</span></i></div>', iconSize: [26,26], iconAnchor: [13,13] });
+    return L.divIcon({ className: '', html: '<div class="war-pin' + (ty.impact ? ' impact' : '') + (dim ? ' dim' : '') + '" style="--wc:' + ty.color + '"><i><span>' + esc(ty.glyph) + '</span></i></div>', iconSize: [26,26], iconAnchor: [13,13] });
+  }
+  var SIDE_COLORS = { 'Rosjanie': '#EF4444', 'Niemcy': '#60A5FA', 'Ludność': '#A855F7' };
+  function sideColor(side){
+    for (var k in SIDE_COLORS) if (side && side.indexOf(k) === 0) return SIDE_COLORS[k];
+    return '#EAB308';
+  }
+  function certBadge(c){
+    if (!c) return '';
+    var n = norm(c), cls = n.indexOf('potwierdz') === 0 ? 'cert-pot' : n.indexOf('relacja') === 0 ? 'cert-rel' : n.indexOf('hipotez') === 0 ? 'cert-hip' : '';
+    return '<span class="badge ' + cls + '" title="Pewność"><span class="dot"></span>' + esc(c) + '</span>';
+  }
+  // Day-by-day view: an event is active on a day when it falls inside its from–to range.
+  function activeOn(e, day){ return !day || (e.ev.from && e.ev.from <= day && (e.ev.to || e.ev.from) >= day); }
+  function dayLabel(iso){
+    var m = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+    var p = iso.split('-');
+    return { d: String(parseInt(p[2], 10)), m: m[parseInt(p[1], 10) - 1] };
+  }
+  function dayList(days){
+    var out = [], d = new Date(days.from + 'T12:00:00Z'), end = new Date(days.to + 'T12:00:00Z');
+    while (d <= end){ out.push(d.toISOString().slice(0, 10)); d.setUTCDate(d.getUTCDate() + 1); }
+    return out;
   }
   // Arrow head at the end of a line; the angle is constant across zoom levels (Mercator is conformal).
   function arrowHead(coords, color){
@@ -1552,9 +1622,9 @@
   function buildWar(key){
     if (warState[key]) return warState[key];
     var war = WARS[key];
-    var events = (war.events || []).filter(function(e){ return !e.placeholder; }).map(resolveEvent)
-      .sort(function(a, b){ return String(a.ev.sort || '').localeCompare(String(b.ev.sort || '')); });
-    var s = { key: key, war: war, events: events, markers: {}, filter: {}, bounds: [],
+    var events = (war.events || []).filter(function(e){ return !e.placeholder; }).map(function(ev){ return resolveEvent(ev, war); })
+      .sort(function(a, b){ return sortKey(a.ev.sort).localeCompare(sortKey(b.ev.sort)); });
+    var s = { key: key, war: war, events: events, markers: {}, filter: {}, bounds: [], day: null,
       placeholders: (war.events || []).filter(function(e){ return e.placeholder; }),
       layer: makeClusterLayer(function(n){
         return L.divIcon({ className: '', html: '<div class="war-group" style="--wc:' + war.color + '"><i><span>' + n + '</span></i></div>', iconSize: [32,32], iconAnchor: [16,16] });
@@ -1563,33 +1633,46 @@
     events.forEach(function(e, i){
       if (!e.ll) return;
       var m = L.marker(e.ll, { icon: warPinIcon(e.ev.type), keyboard: true, title: '' });
-      m.bindTooltip(esc(e.item.name) + (e.item.dating ? ' · ' + esc(e.item.dating) : ''), { className: 'tt', direction: 'top', offset: [0, -14] });
+      m.bindTooltip(esc(e.item.name) + (e.item.dating ? ' · ' + esc(e.item.dating) : '') + (e.ev.side ? ' · ' + esc(e.ev.side) : ''), { className: 'tt', direction: 'top', offset: [0, -14] });
       m.on('click', function(){ openEvent(key, i); });
       m.evType = e.ev.type;
+      m.evRef = e;
       s.markers[e.ev.id] = m;
       s.bounds.push(e.ll);
     });
+    s.lineParts = [];
     (war.lines || []).forEach(function(line){
       if (!line.coords || line.coords.length < 2) return;   // placeholders without coordinates are only listed
       var lt = LINE_TYPES[line.type] || { color: war.color, dash: null, arrow: false, label: '' };
       var color = line.color || lt.color;
-      L.polyline(line.coords, { color: getComputedStyle(document.documentElement).getPropertyValue('--casing').trim(), weight: 8, opacity: 1, interactive: false }).addTo(s.lineLayer);
-      var pl = L.polyline(line.coords, { color: color, weight: 4, opacity: 0.95, dashArray: lt.dash || null }).addTo(s.lineLayer);
-      pl.bindTooltip('<b>' + esc(line.title || lt.label) + '</b>' + (line.date ? '<br>' + esc(line.date) : '') + (line.desc ? '<br>' + esc(line.desc) : ''), { className: 'tt', sticky: true });
-      if (lt.arrow) arrowHead(line.coords, color).addTo(s.lineLayer);
-      line.coords.forEach(function(c){ s.bounds.push(L.latLng(c)); });
+      var casing = L.polyline(line.coords, { color: getComputedStyle(document.documentElement).getPropertyValue('--casing').trim(), weight: 8, opacity: line.context ? 0.5 : 1, interactive: false }).addTo(s.lineLayer);
+      var pl = L.polyline(line.coords, { color: color, weight: line.context ? 3 : 4, opacity: 0.95, dashArray: lt.dash || null, className: lt.animate ? 'fire-line' : '' }).addTo(s.lineLayer);
+      pl.bindTooltip('<b>' + esc(line.title || lt.label) + '</b>' + (line.date ? '<br>' + esc(line.date) : '') + (line.side ? ' · ' + esc(line.side) : '') + (line.desc ? '<br>' + esc(line.desc) : ''), { className: 'tt', sticky: true });
+      var ah = lt.arrow ? arrowHead(line.coords, color).addTo(s.lineLayer) : null;
+      s.lineParts.push({ line: line, paths: [casing, pl], op: [line.context ? 0.5 : 1, 0.95], arrow: ah });
+      if (!line.context) line.coords.forEach(function(c){ s.bounds.push(L.latLng(c)); });
     });
     applyWarFilter(s);
     s.layer.on('animationend spiderfied', function(){ setActiveWar(activeWarMk); });
     warState[key] = s;
     return s;
   }
+  // '1914-10' sorts after '1914-10-31', '1914' after '1914-12-31'.
+  function sortKey(k){ k = String(k || ''); return k.length === 4 ? k + '-99-99' : k.length === 7 ? k + '-99' : k; }
+  function lineActive(line, day){ return !day || line.context || !line.from || (line.from <= day && (line.to || line.from) >= day); }
   function applyWarFilter(s){
     s.layer.clearLayers();
     Object.keys(s.markers).forEach(function(id){
       var m = s.markers[id];
-      if (s.filter[m.evType] !== false) s.layer.addLayer(m);
+      // With a day selected only that day's places are shown (clusters would hide "dimmed" pins).
+      if (s.filter[m.evType] !== false && activeOn(m.evRef, s.day)) s.layer.addLayer(m);
     });
+    (s.lineParts || []).forEach(function(lp){
+      var on = lineActive(lp.line, s.day);
+      lp.paths.forEach(function(p){ p.setStyle({ opacity: on ? lp.op[lp.paths.indexOf(p)] : 0.12 }); });
+      if (lp.arrow) lp.arrow.setOpacity(on ? 1 : 0.15);
+    });
+    setActiveWar(activeWarMk);
   }
   function setActiveWar(mk){
     if (activeWarMk && activeWarMk._icon) activeWarMk._icon.classList.remove('is-active');
@@ -1657,8 +1740,8 @@
       shown++;
       var year = String(e.ev.sort || '').slice(0, 4), head = '';
       if (year && year !== lastYear){ head = '<li class="year" aria-hidden="true">' + esc(year) + '</li>'; lastYear = year; }
-      var where = e.place ? e.place.address : (e.item.locationDesc || '');
-      return head + '<li><button data-ev="' + i + '">' + glyphHTML(e.ev.type, 'g') + '<span><span class="d">' + esc(e.item.dating || year) + '</span>' +
+      var where = e.ev.where || (e.place ? e.place.address : (e.item.locationDesc || ''));
+      return head + '<li' + (activeOn(e, s.day) ? '' : ' class="off"') + '><button data-ev="' + i + '">' + glyphHTML(e.ev.type, 'g') + '<span><span class="d">' + esc(e.item.dating || year) + '</span>' +
         esc(e.item.name) + (e.photos && e.photos.length ? camSvg : '') +
         '<small>' + esc(where) + (e.ll ? '' : (where ? ' · ' : '') + 'bez punktu na mapie') + '</small></span></button></li>';
     }).join('');
@@ -1667,24 +1750,66 @@
       var missing = line.placeholder || !(line.coords && line.coords.length > 1);
       return '<li style="--lc:' + (line.color || lt.color) + '"><span class="sw' + (lt.dash ? ' dash' : '') + '" aria-hidden="true"></span><span><b>' + esc(line.title || lt.label) + '</b>' +
         (missing ? '<span class="todo">do uzupełnienia</span>' : '') +
-        '<small>' + esc([lt.label, line.date].filter(Boolean).join(' · ')) + '</small>' + (line.desc ? esc(line.desc) : '') + '</span></li>';
+        '<small>' + esc([lt.label, line.side, line.date].filter(Boolean).join(' · ')) + '</small>' + (line.desc ? esc(line.desc) : '') +
+        (line.sources && line.sources.length ? '<small>Źródła: ' + esc(line.sources.map(function(x){ return typeof x === 'string' ? x : x.name; }).join(', ')) + '</small>' : '') + '</span></li>';
     }).join('');
     var ph = s.placeholders.map(function(ev){
       return '<li><span class="sw" aria-hidden="true"></span><span><b>' + esc(ev.title || 'Wydarzenie') + '</b><span class="todo">do uzupełnienia</span>' +
         (ev.desc ? '<small>' + esc(ev.desc) + '</small>' : '') + '</span></li>';
     }).join('');
+    var daysHTML = '';
+    if (war.days){
+      var chronByDay = {};
+      (war.chronicle || []).forEach(function(c){ (chronByDay[c.sort] = chronByDay[c.sort] || []).push(c); });
+      daysHTML = '<div><div class="section-label">Dzień po dniu · ' + esc(war.days.label) + '</div><div class="days" role="group" aria-label="Wybierz dzień">' +
+        '<button data-day="" aria-pressed="' + String(!s.day) + '"><small>cały</small>okres</button>' +
+        dayList(war.days).map(function(d){
+          var lb = dayLabel(d), has = s.events.some(function(e){ return activeOn(e, d); }) || chronByDay[d];
+          return '<button data-day="' + d + '" class="' + (has ? 'has' : '') + '" aria-pressed="' + String(s.day === d) + '">' + lb.d + '<small>' + lb.m + '</small></button>';
+        }).join('') + '</div>' +
+        (s.day ? (chronByDay[s.day] || []).map(function(c){ return '<div class="day-note"><b>' + esc(c.date) + '</b>' + esc(c.text) + '</div>'; }).join('') +
+          '<div class="day-note"><b>Na mapie</b>' + s.events.filter(function(e){ return activeOn(e, s.day); }).length + ' wydarzeń z tego dnia (' + s.events.filter(function(e){ return e.ll && activeOn(e, s.day); }).length + ' z punktem na mapie); linie z innych dni są wyblakłe.</div>' : '') +
+        '</div>';
+    }
+    var chronHTML = (war.chronicle || []).length ? '<details class="notes"><summary>Kronika ' + esc(war.period) + ' (' + war.chronicle.length + ')</summary><ul class="chron">' +
+      war.chronicle.map(function(c){
+        return '<li><span class="cd">' + esc(c.date) + '</span><span><span class="sc ' + (c.scale === 'Front' ? 'front' : 'lok') + '">' + esc(c.scale === 'Front' ? 'front' : 'lokalnie') + '</span>' + esc(c.text) +
+          (c.sources && c.sources.length ? '<small>Źródła: ' + esc(c.sources.join(', ')) + '</small>' : '') + '</span></li>';
+      }).join('') + '</ul></details>' : '';
+    var srcKeys = war.sources ? Object.keys(war.sources) : [];
+    var srcHTML = srcKeys.length ? '<details class="notes"><summary>Źródła (' + srcKeys.length + ')</summary><ul class="src-list">' +
+      srcKeys.map(function(k){
+        var d = war.sources[k];
+        return '<li><span><b>' + esc(k) + '</b>' + (d.url ? '<a href="' + esc(d.url) + '" target="_blank" rel="noopener">' + esc(d.name) + '</a>' : esc(d.name)) +
+          '<small>' + esc([d.type, d.note].filter(Boolean).join(' · ')) + '</small></span></li>';
+      }).join('') + '</ul></details>' : '';
     warBody.innerHTML = '<div class="panel-inner">' +
       (war.intro ? '<p class="war-intro">' + esc(war.intro) + '</p>' : '') +
+      daysHTML +
       (legend ? '<div><div class="section-label">Legenda · kliknij, aby filtrować</div><div class="legend-chips">' + legend + '</div></div>' : '') +
       '<div><div class="section-label">Oś czasu (' + shown + ')</div>' +
         (items ? '<ul class="timeline">' + items + '</ul>' : '<p class="list-empty">Brak wydarzeń dla wybranych filtrów.</p>') + '</div>' +
       (lines ? '<div><div class="section-label">Front i kierunki ataków</div><ul class="line-list">' + lines + '</ul></div>' : '') +
       (ph ? '<div><div class="section-label">Do uzupełnienia</div><ul class="line-list">' + ph + '</ul></div>' : '') +
+      chronHTML + srcHTML +
+      (war.dataset ? '<p class="kicker" style="text-transform:none;letter-spacing:0;font-weight:500">Dane: ' + esc(war.dataset) + '</p>' : '') +
       '</div>';
   }
   warBody.addEventListener('click', function(e){
     var s = warState[mode];
     if (!s) return;
+    var db = e.target.closest('[data-day]');
+    if (db){
+      s.day = db.dataset.day || null;
+      applyWarFilter(s);
+      renderWarSheet(s);
+      var sel = warBody.querySelector('.days button[aria-pressed="true"]');
+      if (sel){ var strip = sel.parentNode; strip.scrollLeft = sel.offsetLeft - strip.offsetLeft - strip.clientWidth / 2 + sel.offsetWidth / 2; }
+      var pts = s.events.filter(function(x){ return x.ll && activeOn(x, s.day) && s.filter[x.ev.type] !== false; }).map(function(x){ return x.ll; });
+      (s.lineParts || []).forEach(function(lp){ if (!lp.line.context && lineActive(lp.line, s.day)) lp.line.coords.forEach(function(c){ pts.push(L.latLng(c)); }); });
+      if (pts.length) fitWar({ bounds: pts });
+      return;
+    }
     var tb = e.target.closest('[data-wtype]');
     if (tb){
       var t = tb.dataset.wtype;
@@ -1707,9 +1832,13 @@
     $('panel-kicker').textContent = s.war.label + ' · ' + s.war.period;
     panelBody.innerHTML = seqBarHTML('wb', s.war.color, s.war.label, 'Wydarzenie', i, s.events.length) +
       renderRecordHTML(e.item, e.place, {
-        photos: e.photos, approx: e.ev.approx, sources: e.ev.sources, noSiblings: true,
-        badges: '<span class="badge" style="color:' + ty.color + '"><span class="dot"></span>' + esc(ty.label) + '</span>',
-        modernLink: e.rec && e.rec.place ? e.item.origId : null
+        photos: e.photos, approx: e.ev.approx, sources: e.sources, noSiblings: true, hasPoint: !!e.ll,
+        addr: e.ev.where && e.ll ? e.ev.where : null,
+        badges: '<span class="badge" style="color:' + ty.color + '"><span class="dot"></span>' + esc(ty.label) + '</span>' +
+          (e.ev.side ? '<span class="badge side-badge" style="--sc:' + sideColor(e.ev.side) + '"><i></i>' + esc(e.ev.side) + '</span>' : '') +
+          certBadge(e.ev.certainty),
+        facts: [['Względem torów', e.ev.tracks], ['Obszar', e.ev.area], ['ID w arkuszu', e.ev.code]],
+        modernLink: e.modernLink
       });
     panelBody.scrollTop = 0;
     btn1944.hidden = !e.ll;
@@ -1741,7 +1870,7 @@
     if (!war || !war.events) return;
     war.events.forEach(function(ev){
       if (ev.placeholder) return;
-      var r = resolveEvent(ev);
+      var r = resolveEvent(ev, war);
       var entry = { label: r.item.name, sub: war.label + (r.item.dating ? ' · ' + r.item.dating : ''), type: warType(ev.type).label,
                     go: function(){ openEventById(key, ev.id); }, mapped: !!r.ll };
       entry.nLabel = norm(entry.label); entry.nRest = norm(entry.sub + ' ' + entry.type);
