@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
   workflow_dispatch:
-  # Co poniedziałek odświeża rozkłady autobusów (data/transit.js) i publikuje stronę ponownie
+  # Co poniedziałek odświeża rozkłady autobusów i dane okolicy (data/transit.js, data/poi.js) i publikuje stronę ponownie
   schedule:
     - cron: '17 3 * * 1'
 
@@ -32,6 +32,9 @@ jobs:
         # Przy błędzie źródła zostaje wersja data/transit.js z repozytorium
         continue-on-error: true
         run: python3 tools/import_transit.py
+      - name: Odśwież okolicę z OpenStreetMap (kultura, sklepy, stacje, apteki)
+        continue-on-error: true
+        run: python3 tools/import_poi.py
       - name: Przygotuj pliki strony
         run: |
           mkdir -p _site

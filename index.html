@@ -340,6 +340,33 @@
   .war-label{font-family:'Special Elite','Courier New',monospace;font-size:12px;white-space:nowrap;color:var(--lc);text-shadow:0 0 3px #F4EAD0,0 0 3px #F4EAD0,0 0 6px #F4EAD0;letter-spacing:.3px;pointer-events:none;transform-origin:center}
   .war-label span{display:inline-block}
   .war-chip{display:none}
+  /* Okolica (OSM): culture, cafés, groceries, fuel, pharmacies with "open now" */
+  .near-cats{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  .near-cats::-webkit-scrollbar{display:none}
+  .near-cats button{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border-strong);background:var(--faint);color:var(--text);border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:600}
+  .near-cats button[aria-pressed="true"]{background:var(--pc);border-color:var(--pc);color:#fff}
+  .near-cats small{opacity:.75;font-weight:700}
+  .near-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .near-tools label{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--muted)}
+  .near-quick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .near-quick button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1px solid var(--border);background:var(--faint);color:var(--text);border-radius:12px;padding:10px 12px;font-weight:700;font-size:13px}
+  .near-quick small{color:var(--muted);font-weight:600;font-size:11.5px}
+  .near-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+  .near-list li + li{border-top:1px dashed var(--border)}
+  .near-list button{width:100%;display:flex;gap:10px;align-items:flex-start;text-align:left;background:none;border:none;color:var(--text);padding:10px 2px;font-size:13.5px}
+  .near-list .pi{flex-shrink:0;margin-top:1px}
+  .near-list small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
+  .near-list .dist{margin-left:auto;flex-shrink:0;font-size:11.5px;font-weight:700;color:var(--muted);white-space:nowrap}
+  .oh{font-weight:700}
+  .oh.open{color:var(--ok)}
+  .oh.closed{color:var(--low)}
+  .oh.unk{color:var(--muted);font-weight:600}
+  .poi-pin{width:24px;height:24px;border-radius:50%;background:var(--pc);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1}
+  .poi-pin.shut{filter:grayscale(.85);opacity:.7}
+  .is-active .poi-pin{transform:scale(1.3);box-shadow:0 0 0 4px rgba(var(--accent-rgb),0.45),0 1px 4px rgba(0,0,0,0.5)}
+  .pi{width:22px;height:22px;border-radius:50%;background:var(--pc);display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+  .oh-table{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px;font-variant-numeric:tabular-nums}
+  .oh-table .today{color:var(--accent);font-weight:700}
   /* Buses: stops layer, stop card, "getting there by bus" block in routes */
   #bus-btn{display:inline-flex;align-items:center;padding-left:11px;padding-right:11px}
   .bus-stop{width:20px;height:20px;border-radius:6px;background:#0B5CAD;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;color:#fff}
@@ -427,7 +454,7 @@
     .seg-btn .lg,#sat-btn .lg{display:none}
     .seg-btn .sh,#sat-btn .sh{display:inline}
     .seg.pill{gap:2px}
-    .seg.pill .seg-btn{padding:8px 7px;letter-spacing:0;font-size:11px}
+    .seg.pill .seg-btn{padding:8px 6px;letter-spacing:0;font-size:11px}
   }
 
   /* 1944 overlay control (next to the map style buttons) */
@@ -655,8 +682,9 @@
         <button class="seg-btn" data-layer="ww2" aria-pressed="false" title="II wojna światowa (1939–1945)"><span class="lg">II WOJNA</span><span class="sh">II WŚ</span></button>
         <span class="sep" aria-hidden="true"></span>
         <button class="seg-btn" data-layer="miejsca" aria-pressed="false">MIEJSCA</button>
-        <button class="seg-btn" data-layer="zdjecia" aria-pressed="false">ZDJĘCIA</button>
+        <button class="seg-btn" data-layer="zdjecia" aria-pressed="false" aria-label="Zdjęcia"><span class="lg">ZDJĘCIA</span><span class="sh"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span></button>
         <button class="seg-btn" data-layer="trasy" aria-pressed="false">TRASY</button>
+        <button class="seg-btn" data-layer="okolica" aria-pressed="false" title="Kultura, kawiarnie, sklepy, stacje paliw i apteki — co jest otwarte teraz">OKOLICA</button>
       </div>
     </div>
 
@@ -688,6 +716,18 @@
         <button class="icon-btn" id="close-war" aria-label="Zamknij listę wydarzeń"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
       </div>
       <div class="sheet-body" id="war-body"></div>
+    </aside>
+
+    <aside id="near-sheet" class="sheet" aria-labelledby="near-title" tabindex="-1">
+      <div class="grabber" aria-hidden="true"></div>
+      <div class="sheet-head">
+        <div class="grow">
+          <div class="kicker" id="near-kicker">Okolica · teraz</div>
+          <h3 class="display" id="near-title">W pobliżu</h3>
+        </div>
+        <button class="icon-btn" id="close-near" aria-label="Zamknij okolicę"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </div>
+      <div class="sheet-body" id="near-body"></div>
     </aside>
 
     <aside id="routes-sheet" class="sheet" aria-labelledby="routes-title" tabindex="-1">
@@ -789,11 +829,12 @@
 <script src="data/wars.js"></script>
 <script src="data/artifacts.js"></script>
 <script src="data/transit.js"></script>
+<script src="data/poi.js"></script>
 <script>
 (function(){
   var D = window.ZBIKOW || {};
   var PLACES = D.places || [], UNMAPPED = D.unmapped || [], PHOTOS = D.photos || {}, ROUTES = D.routes || [];
-  var WARS = D.wars || {}, ARTIFACTS = D.artifacts || {}, TRANSIT = D.transit || null;
+  var WARS = D.wars || {}, ARTIFACTS = D.artifacts || {}, TRANSIT = D.transit || null, POI = D.poi || null;
   // Data lives in data/*.js (see the header of each file for its schema).
 
   var mobileMQ = window.matchMedia('(max-width: 860px)');
@@ -1048,7 +1089,7 @@
   }
 
   // --- Panel rendering ---
-  var panel = $('panel'), panelBody = $('panel-body'), placesList = $('places-list'), routesSheet = $('routes-sheet'), warSheet = $('war-sheet');
+  var panel = $('panel'), panelBody = $('panel-body'), placesList = $('places-list'), routesSheet = $('routes-sheet'), warSheet = $('war-sheet'), nearSheet = $('near-sheet');
   var pinSvg = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 21s7-6.1 7-11.5A7 7 0 0 0 5 9.5C5 14.9 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.2"/></svg>';
 
   function confBadge(conf){
@@ -1151,14 +1192,15 @@
 
   var current = null; // { rec }
   function syncBodyState(){
-    [panel, placesList, routesSheet, warSheet].forEach(function(x){ if (!x.classList.contains('open')) x.classList.remove('expanded'); });
-    document.body.classList.toggle('panel-open', panel.classList.contains('open') || placesList.classList.contains('open') || routesSheet.classList.contains('open') || warSheet.classList.contains('open'));
+    [panel, placesList, routesSheet, warSheet, nearSheet].forEach(function(x){ if (!x.classList.contains('open')) x.classList.remove('expanded'); });
+    document.body.classList.toggle('panel-open', panel.classList.contains('open') || placesList.classList.contains('open') || routesSheet.classList.contains('open') || warSheet.classList.contains('open') || nearSheet.classList.contains('open'));
+    setPressed('okolica', nearSheet.classList.contains('open'));
     setPressed('trasy', routesSheet.classList.contains('open') || !!activeRoute);
     setPressed('miejsca', placesList.classList.contains('open') && listFilter !== 'photos');
     setPressed('zdjecia', placesList.classList.contains('open') && listFilter === 'photos');
   }
   function showSheet(el){
-    [panel, placesList, routesSheet, warSheet].forEach(function(s){ if (s !== el) s.classList.remove('open'); });
+    [panel, placesList, routesSheet, warSheet, nearSheet].forEach(function(s){ if (s !== el) s.classList.remove('open'); });
     el.classList.add('open');
     syncBodyState();
   }
@@ -1167,6 +1209,7 @@
     placesList.classList.remove('open');
     routesSheet.classList.remove('open');
     warSheet.classList.remove('open');
+    nearSheet.classList.remove('open');
     setActiveMarker(null);
     setActiveWar(null);
     current = null;
@@ -1496,6 +1539,10 @@
     btn.addEventListener('click', function(){
       var layer = btn.dataset.layer;
       if (layer === 'wspolczesna') setMode('modern');
+      else if (layer === 'okolica'){
+        if (nearSheet.classList.contains('open')){ nearSheet.classList.remove('open'); syncBodyState(); }
+        else openNear();
+      }
       else if (layer === 'ww1' || layer === 'ww2'){
         if (mode === layer && warSheet.classList.contains('open')) closeWarSheet();
         else if (mode === layer) openWarSheet();
@@ -2084,6 +2131,7 @@
     document.body.classList.toggle('war-on', m !== 'modern');
     if (TRANSIT){
       if (m !== 'modern'){ map.removeLayer(busLayer); busLineLayer.clearLayers(); busShown = {}; }
+      if (m !== 'modern' && POI){ map.removeLayer(poiLayer); nearSheet.classList.remove('open'); }
       else if (store('zbikow-bus') === '1') busLayer.addTo(map);
     }
     var cart = $('war-cartouche');
@@ -2502,6 +2550,189 @@
     searchIndex.push(entry);
   });
 
+  // --- Okolica (data/poi.js from OpenStreetMap, tools/import_poi.py) ---
+  var POI_CAT = {
+    kultura: { color: '#8E44AD', icon: '🏛', label: 'Kultura' },
+    kawiarnie: { color: '#A0522D', icon: '☕', label: 'Kawiarnie' },
+    spozywcze: { color: '#2E8B57', icon: '🛒', label: 'Sklepy spożywcze' },
+    paliwo: { color: '#C0392B', icon: '⛽', label: 'Stacje paliw' },
+    apteki: { color: '#16A085', icon: '✚', label: 'Apteki' }
+  };
+  var nearBody = $('near-body'), poiLayer = L.layerGroup(), poiMarkers = {}, poiById = {};
+  var nearState = { cat: 'kultura', openOnly: false, from: null };
+  var DAYS_PL = ['poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota', 'niedziela'];
+  // Opening state from the weekly plan baked by the importer (minutes, Monday first; PH = Polish holidays).
+  function dayPlan(p, dt){
+    if (!p.h) return null;
+    return (isHoliday(dt) && p.h.ph) ? p.h.ph : p.h.w[(dt.getDay() + 6) % 7];
+  }
+  function ohState(p, now){
+    if (!p.h) return { k: 'unk', t: p.oh ? 'godziny: ' + p.oh : 'brak godzin w OSM' };
+    now = now || warsawNow();
+    var m = now.getHours() * 60 + now.getMinutes(), today = dayPlan(p, now) || [];
+    var y = new Date(now.getTime() - 864e5), yest = dayPlan(p, y) || [];
+    for (var i = 0; i < yest.length; i++) if (yest[i][1] > 1440 && m + 1440 < yest[i][1]) return { k: 'open', t: 'otwarte do ' + hm(yest[i][1]) };
+    for (i = 0; i < today.length; i++) if (m >= today[i][0] && m < today[i][1]) {
+      if (today[i][0] === 0 && today[i][1] >= 1440) return { k: 'open', t: 'otwarte całą dobę' };
+      return { k: 'open', t: 'otwarte do ' + hm(today[i][1]) + (today[i][1] - m <= 30 ? ' (zaraz zamykają)' : '') };
+    }
+    for (i = 0; i < today.length; i++) if (today[i][0] > m) return { k: 'closed', t: 'zamknięte · otwierają o ' + hm(today[i][0]) };
+    for (var d = 1; d <= 7; d++){
+      var dt = new Date(now.getTime() + d * 864e5), pl = dayPlan(p, dt) || [];
+      if (pl.length) return { k: 'closed', t: 'zamknięte · otwierają ' + (d === 1 ? 'jutro' : DAYS_PL[(dt.getDay() + 6) % 7]) + ' o ' + hm(pl[0][0]) };
+    }
+    return { k: 'closed', t: 'zamknięte' };
+  }
+  function poiIcon(p, st){
+    var c = POI_CAT[p.c];
+    return L.divIcon({ className: '', html: '<div class="poi-pin' + (st && st.k === 'closed' ? ' shut' : '') + '" style="--pc:' + c.color + '">' + c.icon + '</div>', iconSize: [24,24], iconAnchor: [12,12] });
+  }
+  if (POI){
+    POI.items.forEach(function(p){
+      poiById[p.id] = p;
+      var mk = L.marker([p.lat, p.lng], { icon: poiIcon(p), keyboard: true, zIndexOffset: 300 });
+      mk.bindTooltip('<b>' + esc(p.n) + '</b><br>' + esc(p.s) + ' · ' + esc(ohState(p).t), { className: 'tt', direction: 'top', offset: [0, -12] });
+      mk.on('click', function(){ openPoi(p.id); });
+      poiMarkers[p.id] = mk;
+    });
+  } else { segButtons.forEach(function(b){ if (b.dataset.layer === 'okolica') b.hidden = true; }); }
+  function nearOrigin(){
+    if (nearState.from) return nearState.from;
+    if (geoMarker) return geoMarker.getLatLng();
+    return map.getCenter();
+  }
+  function fmtDist(d){ return d < 1000 ? Math.round(d / 10) * 10 + ' m' : (d / 1000).toFixed(1).replace('.', ',') + ' km'; }
+  function showPoiLayer(){
+    if (mode !== 'modern') setMode('modern', true);
+    poiLayer.clearLayers();
+    POI.items.forEach(function(p){
+      if (p.c !== nearState.cat) return;
+      var st = ohState(p);
+      if (nearState.openOnly && st.k !== 'open') return;
+      poiMarkers[p.id].setIcon(poiIcon(p, st));
+      poiLayer.addLayer(poiMarkers[p.id]);
+    });
+    if (!map.hasLayer(poiLayer)) poiLayer.addTo(map);
+  }
+  function nearestOpen(cat){
+    var o = nearOrigin(), best = null;
+    POI.items.forEach(function(p){
+      if (p.c !== cat || ohState(p).k !== 'open') return;
+      var d = o.distanceTo([p.lat, p.lng]);
+      if (!best || d < best.d) best = { p: p, d: d };
+    });
+    return best;
+  }
+  function renderNear(){
+    var o = nearOrigin(), counts = {};
+    POI.items.forEach(function(p){ counts[p.c] = (counts[p.c] || 0) + 1; });
+    var list = POI.items.filter(function(p){ return p.c === nearState.cat; }).map(function(p){ return { p: p, st: ohState(p), d: o.distanceTo([p.lat, p.lng]) }; })
+      .filter(function(x){ return !nearState.openOnly || x.st.k === 'open'; })
+      .sort(function(a, b){ return (a.st.k === 'open' ? 0 : 1) - (b.st.k === 'open' ? 0 : 1) || a.d - b.d; });
+    var quick = ['spozywcze', 'paliwo', 'apteki', 'kawiarnie'].map(function(c){
+      var b = nearestOpen(c), cc = POI_CAT[c];
+      return '<button data-nearest="' + c + '"' + (b ? '' : ' disabled') + '><span>' + cc.icon + ' ' + (c === 'spozywcze' ? 'Najbliższy otwarty sklep' : c === 'paliwo' ? 'Najbliższa stacja' : c === 'apteki' ? 'Najbliższa apteka' : 'Najbliższa kawiarnia') + '</span>' +
+        '<small>' + (b ? esc(b.p.n) + ' · ' + fmtDist(b.d) : 'teraz nic otwartego (wg OSM)') + '</small></button>';
+    }).join('');
+    var fromLabel = nearState.from ? 'od Twojej pozycji' : geoMarker ? 'od Twojej pozycji' : 'od środka mapy';
+    nearBody.innerHTML = '<div class="panel-inner">' +
+      '<div class="near-quick">' + quick + '</div>' +
+      '<div class="near-cats" role="group" aria-label="Kategoria">' + Object.keys(POI_CAT).map(function(c){
+        var cc = POI_CAT[c];
+        return '<button data-cat="' + c + '" style="--pc:' + cc.color + '" aria-pressed="' + String(nearState.cat === c) + '">' + cc.icon + ' ' + cc.label + ' <small>' + (counts[c] || 0) + '</small></button>';
+      }).join('') + '</div>' +
+      '<div class="near-tools"><label><input type="checkbox" id="near-open"' + (nearState.openOnly ? ' checked' : '') + '> tylko otwarte teraz</label>' +
+        '<button class="btn" id="near-me" style="margin-left:auto">' + (nearState.from || geoMarker ? 'Odśwież moją pozycję' : 'Szukaj od mojej pozycji') + '</button></div>' +
+      '<div><div class="section-label">' + esc(POI_CAT[nearState.cat].label) + ' · ' + list.length + ' · odległość ' + fromLabel + '</div>' +
+        (list.length ? '<ul class="near-list">' + list.map(function(x){
+          var p = x.p;
+          return '<li><button data-poi="' + p.id + '"><span class="pi" style="--pc:' + POI_CAT[p.c].color + '">' + POI_CAT[p.c].icon + '</span><span>' + esc(p.n) +
+            '<small>' + esc([p.s, p.a].filter(Boolean).join(' · ')) + '</small><small class="oh ' + x.st.k + '">' + esc(x.st.t) + '</small></span><span class="dist">' + fmtDist(x.d) + '</span></button></li>';
+        }).join('') + '</ul>' : '<p class="list-empty">Nic otwartego w tej kategorii (według godzin w OpenStreetMap).</p>') + '</div>' +
+      '<p class="bus-note">Dane: © autorzy <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> (ODbL), stan na ' + esc(POI.updated) +
+        '. Godziny wpisują wolontariusze — mogą być nieaktualne, a przy części miejsc ich brak. Niedziele niehandlowe nie są uwzględnione, jeśli sklep nie ma ich w godzinach.</p>' +
+      '</div>';
+  }
+  function openNear(){
+    if (!POI) return;
+    renderNear();
+    showSheet(nearSheet);
+    setActiveMarker(null);
+    showPoiLayer();
+  }
+  function locateOnce(cb){
+    if (!navigator.geolocation){ showToast('Ta przeglądarka nie udostępnia lokalizacji.'); return; }
+    navigator.geolocation.getCurrentPosition(function(pos){
+      nearState.from = L.latLng(pos.coords.latitude, pos.coords.longitude);
+      cb();
+    }, function(err){ showToast(err.code === 1 ? 'Brak zgody na lokalizację — odległości liczę od środka mapy.' : 'Nie udało się ustalić pozycji.'); }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+  }
+  nearBody.addEventListener('click', function(e){
+    var c = e.target.closest('[data-cat]');
+    if (c){ nearState.cat = c.dataset.cat; renderNear(); showPoiLayer(); return; }
+    var q = e.target.closest('[data-nearest]');
+    if (q){ var b = nearestOpen(q.dataset.nearest); if (b){ nearState.cat = q.dataset.nearest; showPoiLayer(); openPoi(b.p.id); } return; }
+    var pb = e.target.closest('[data-poi]');
+    if (pb){ openPoi(pb.dataset.poi); return; }
+    if (e.target.closest('#near-me')) locateOnce(function(){ renderNear(); });
+  });
+  nearBody.addEventListener('change', function(e){
+    if (e.target.id === 'near-open'){ nearState.openOnly = e.target.checked; renderNear(); showPoiLayer(); }
+  });
+  $('close-near').addEventListener('click', function(){ nearSheet.classList.remove('open'); syncBodyState(); });
+  // A place with history within ~50 m of a POI (e.g. Muzeum Dulag 121 ↔ Dulag 121 records).
+  function historyNear(p){
+    var ll = L.latLng(p.lat, p.lng), best = null;
+    PLACES.forEach(function(pl){ var d = ll.distanceTo([pl.lat, pl.lng]); if (d < 60 && (!best || d < best.d)) best = { pl: pl, d: d }; });
+    return best && best.pl;
+  }
+  var activePoiMk = null;
+  function openPoi(id){
+    var p = poiById[id];
+    if (!p) return;
+    if (!map.hasLayer(poiLayer) || nearState.cat !== p.c){ nearState.cat = p.c; showPoiLayer(); }
+    if (!poiLayer.hasLayer(poiMarkers[id])) poiLayer.addLayer(poiMarkers[id]);
+    var st = ohState(p), now = warsawNow(), ti = (now.getDay() + 6) % 7, cc = POI_CAT[p.c];
+    var table = p.h ? '<div class="oh-table">' + DAYS_PL.map(function(dn, i){
+      var iv = p.h.w[i];
+      return '<span' + (i === ti ? ' class="today"' : '') + '>' + dn + '</span><span' + (i === ti ? ' class="today"' : '') + '>' + (iv.length ? iv.map(function(x){ return hm(x[0]) + '–' + (x[1] >= 1440 && x[0] === 0 ? '24:00' : hm(x[1])); }).join(', ') : 'zamknięte') + '</span>';
+    }).join('') + (p.h.ph ? '<span>święta</span><span>' + (p.h.ph.length ? p.h.ph.map(function(x){ return hm(x[0]) + '–' + hm(x[1]); }).join(', ') : 'zamknięte') + '</span>' : '') + '</div>'
+      : '<p class="bus-note">' + (p.oh ? 'Godziny w OSM: ' + esc(p.oh) : 'Brak godzin otwarcia w OpenStreetMap.') + '</p>';
+    var hist = historyNear(p), histRec = hist ? (hist.isGroup ? hist.members[0] : hist) : null;
+    galleryLists = [];
+    $('panel-kicker').textContent = 'Okolica · ' + cc.label;
+    panelBody.innerHTML = '<div class="panel-inner">' +
+      '<div class="badges"><span class="badge" style="color:' + cc.color + ';filter:brightness(1.4)"><span class="dot"></span>' + esc(p.s) + '</span>' + (p.b ? '<span class="badge">' + esc(p.b) + '</span>' : '') + (p.lpg ? '<span class="badge">LPG</span>' : '') + '</div>' +
+      '<div><h2 class="display title" id="panel-title">' + esc(p.n) + '</h2>' + (p.a ? '<div class="addr">' + pinSvg + '<span>' + esc(p.a) + '</span></div>' : '') + '</div>' +
+      '<div class="oh ' + st.k + '" style="font-size:15px">' + esc(st.t) + '</div>' +
+      '<div><div class="section-label">Godziny otwarcia</div>' + table + '</div>' +
+      ((p.tel || p.www) ? '<dl class="facts">' + (p.tel ? '<dt>Telefon</dt><dd><a href="tel:' + esc(p.tel.replace(/\s/g, '')) + '">' + esc(p.tel) + '</a></dd>' : '') +
+        (p.www ? '<dt>Strona</dt><dd><a href="' + esc(/^https?:/.test(p.www) ? p.www : 'https://' + p.www) + '" target="_blank" rel="noopener">' + esc(p.www.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')) + '</a></dd>' : '') + '</dl>' : '') +
+      (histRec ? '<button class="btn" data-modern="' + histRec.origId + '">Historia tego miejsca: ' + esc(hist.isGroup ? hist.groupName : histRec.name) + '</button>' : '') +
+      '<a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=' + p.lat + ',' + p.lng + '" target="_blank" rel="noopener">Nawiguj w Google Maps</a>' +
+      '<p class="bus-note">© autorzy <a href="https://www.openstreetmap.org/' + ({ n: 'node', w: 'way', r: 'relation' })[p.id[0]] + '/' + p.id.slice(1) + '" target="_blank" rel="noopener">OpenStreetMap</a> — widzisz błąd w godzinach? Można go poprawić w OSM.</p>' +
+      '</div>';
+    panelBody.scrollTop = 0;
+    btn1944.hidden = true;
+    current = { kind: 'poi', poiId: id };
+    setHash('');
+    var wasOpen = panel.classList.contains('open');
+    showSheet(panel);
+    setActiveMarker(null);
+    if (activePoiMk && activePoiMk._icon) activePoiMk._icon.classList.remove('is-active');
+    activePoiMk = poiMarkers[id];
+    setTimeout(function(){
+      var ll = L.latLng(p.lat, p.lng), z = Math.max(map.getZoom(), 16);
+      map.flyTo(offsetCenter(ll, z), z, { duration: 0.5 });
+      map.once('moveend', function(){ if (activePoiMk && activePoiMk._icon) activePoiMk._icon.classList.add('is-active'); });
+    }, wasOpen ? 0 : 60);
+  }
+  if (POI) POI.items.forEach(function(p){
+    var entry = { label: p.n, sub: POI_CAT[p.c].label + (p.a ? ' · ' + p.a : ''), type: p.s, go: function(){ openPoi(p.id); }, mapped: true };
+    entry.nLabel = norm(entry.label); entry.nRest = norm(entry.sub + ' ' + entry.type + ' okolica');
+    searchIndex.push(entry);
+  });
+
   // --- Info dialog ---
   var info = $('info');
   $('stats').innerHTML =
@@ -2520,6 +2751,7 @@
     else if (e.key === 'Escape' && !info.open){
       if (routesSheet.classList.contains('open')){ routesSheet.classList.remove('open'); syncBodyState(); }
       else if (warSheet.classList.contains('open')) closeWarSheet();
+      else if (nearSheet.classList.contains('open')){ nearSheet.classList.remove('open'); syncBodyState(); }
       else if (panel.classList.contains('open')) closeSheets();
       else if (placesList.classList.contains('open')){ placesList.classList.remove('open'); syncBodyState(); }
     }
@@ -2527,7 +2759,7 @@
   map.on('click', function(){ if (mobileMQ.matches) closeSheets(); });
 
   // Swipe down on the sheet header to close on mobile.
-  [panel, placesList, routesSheet, warSheet].forEach(function(sheet){
+  [panel, placesList, routesSheet, warSheet, nearSheet].forEach(function(sheet){
     var y0 = null;
     var handle = sheet.querySelector('.sheet-head');
     handle.addEventListener('touchstart', function(e){ y0 = e.touches[0].clientY; }, { passive: true });

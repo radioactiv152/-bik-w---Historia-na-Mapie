@@ -38,6 +38,7 @@ na początku każdego pliku jest opis pól.
 | `data/routes.js` | trasy spacerowe |
 | `data/wars.js` | warstwy „I wojna światowa” i „II wojna światowa”: wydarzenia, typy, linie frontu i kierunki ataków |
 | `data/artifacts.js` | „ARTEFAKTY” i „CO TU PRODUKOWANO” dla miejsc, z dowolną liczbą pozycji i zdjęć |
+| `data/poi.js` | zakładka „Okolica”: kultura, kawiarnie, sklepy spożywcze, stacje paliw, apteki z OpenStreetMap — generowane |
 | `data/transit.js` | przystanki i rozkłady autobusów (linie miejskie Pruszkowa i GPA) — generowane, nie edytuj ręcznie |
 
 Warstwy wojenne generują z arkuszy badawczych skrypty `tools/import_ww1_xlsx.py`
@@ -55,6 +56,17 @@ Dane pochodzą z otwartych plików GTFS (komunikacja miejska Pruszkowa i GPA, re
 [zbiorkom.live](https://zbiorkom.live)). `python3 tools/import_transit.py` pobiera je i zapisuje `data/transit.js`;
 workflow Pages robi to przy każdej publikacji i co poniedziałek, więc rozkład na stronie sam się odświeża.
 To rozkład planowy — bez opóźnień na żywo.
+
+## Okolica
+
+Zakładka **OKOLICA** pokazuje placówki kultury (biblioteki, Muzeum Dulag 121, domy kultury), kawiarnie, sklepy
+spożywcze, stacje paliw i apteki, z informacją „otwarte teraz / otwierają o …” i skrótami „najbliższy otwarty
+sklep / stacja / apteka”. Odległości liczone są od Twojej pozycji (po zgodzie) albo od środka mapy. Przy miejscach
+stojących obok obiektów historycznych jest przycisk „Historia tego miejsca”.
+
+Dane pochodzą z OpenStreetMap (ODbL) — Google Maps nie pozwala legalnie kopiować ani przechowywać swoich danych.
+`python3 tools/import_poi.py` pobiera je przez Overpass API i zamienia godziny otwarcia na prosty plan tygodniowy
+(`data/poi.js`); workflow Pages robi to przy każdej publikacji i co poniedziałek.
 
 ## Trasy spacerowe
 
