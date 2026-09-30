@@ -24,6 +24,9 @@
  *   sources mogą być identyfikatorami ('Z01') z war.sources = { Z01: { name, url, type, note } }.
  *   war.chronicle = [{ sort, date, text, scale: 'Front'|'Lokalna', sources: ['Z07'] }] – kronika wydarzeń.
  *   Linia z `context: true` (np. przebieg frontu w regionie) nie wpływa na dopasowanie widoku mapy.
+ *   war.areas = [{ id, title, label, desc, color, coords: [[lat,lng]…], from, to, sources }] – zakreskowane obszary.
+ *   war.phases = [{ label, from, to }] – okresy zamiast paska dni (np. II wojna); war.sidesKey – legenda stron w kartuszu.
+ *   photosFrom: 179 – zdjęcia wydarzenia brane z photos.js dla podanego rekordu.
  *   Wydarzenie bez współrzędnych (ani ref do rekordu z punktem) pojawia się na osi czasu jako „bez punktu na mapie”.
  *
  * LINIA / STRZAŁKA (lines[]) – przebieg frontu, kierunek ataku, ostrzału, przemieszczeń:
@@ -49,13 +52,18 @@ window.ZBIKOW.wars = {
     niepodleglosc: { label: 'Niepodległość (POW, 1917–1918)',  color: '#E11D48', glyph: '★' },
     represje:      { label: 'Represje i egzekucje',            color: '#DC2626', glyph: '✕' },
     pamiec:        { label: 'Mogiły i miejsca pamięci',        color: '#EAB308', glyph: '✚' },
-    spoleczne:     { label: 'Opieka i skutki wojny',           color: '#0EA5E9', glyph: '♥' }
+    spoleczne:     { label: 'Opieka i skutki wojny',           color: '#0EA5E9', glyph: '♥' },
+    pomoc:         { label: 'Pomoc wypędzonym',                color: '#15803D', glyph: '♥' },
+    szpital:       { label: 'Szpitale i opieka lekarska',      color: '#0EA5E9', glyph: '✚' },
+    zaglada:       { label: 'Zagłada Żydów',                   color: '#6D28D9', glyph: '✡' },
+    powstanie:     { label: 'Powstanie 1944 (AK)',             color: '#B91C1C', glyph: 'AK' }
   },
   lineTypes: {
     front:     { label: 'Linia frontu (kontekst)',    color: '#EAB308', dash: '10 7', arrow: false },
     atak:      { label: 'Kierunek natarcia',          color: '#EF4444', dash: null,   arrow: true },
     ostrzal:   { label: 'Kierunek ostrzału',          color: '#F97316', dash: '2 9',  arrow: true, animate: true },
-    transport: { label: 'Ruch ludności',              color: '#A855F7', dash: '8 6',  arrow: true }
+    transport: { label: 'Ruch ludności i oddziałów',  color: '#A855F7', dash: '8 6',  arrow: true },
+    deportacja:{ label: 'Transporty z obozu',         color: '#4A1F1F', dash: '14 6', arrow: true }
   },
 
   ww1: {
@@ -1625,43 +1633,1808 @@ window.ZBIKOW.wars = {
   },
 
   ww2: {
-    label: 'II wojna światowa',
-    period: '1939–1945',
-    mapTitle: 'Żbików pod okupacją',
-    mapSubtitle: '1939–1945 · obozy, represje, konspiracja',
-    color: '#E0735F',
-    intro: 'Okupacja 1939–1945 w bazie: mogiły żołnierzy z września 1939 r., obozy na terenie Warsztatów Kolejowych (jeniecki w 1939, obóz pracy dla Żydów od 1941, Dulag 121 w 1944), represje i egzekucje oraz magazyny broni i punkty konspiracji AK.',
-    events: [
-      { id: 'ww2-mogila-zbiorowa-1939', ref: 214, type: 'pamiec', sort: '1939-09' },
-      { id: 'ww2-mogila-nieznanego-1939', ref: 215, type: 'pamiec', sort: '1939-09' },
-      { id: 'ww2-oboz-jeniecki-1939', ref: 177, type: 'oboz', sort: '1939-10' },
-      { id: 'ww2-ostbahn', ref: 72, type: 'obiekt', sort: '1939-11' },
-      { id: 'ww2-wiezyczki', ref: 22, type: 'obiekt', sort: '1940' },
-      { id: 'ww2-egzekucje-cegielnia', ref: 71, type: 'represje', sort: '1940' },
-      { id: 'ww2-oboz-pracy-1941', ref: 178, type: 'oboz', sort: '1941-01-20' },
-      { id: 'ww2-magazyn-wieza', ref: 207, type: 'konspiracja', sort: '1941-12' },
-      { id: 'ww2-domy-zydowskie', ref: 70, type: 'represje', sort: '1942' },
-      { id: 'ww2-majatek-zbikow', ref: 208, type: 'konspiracja', sort: '1942' },
-      { id: 'ww2-egzekucje-kowalskiego', ref: 218, type: 'represje', sort: '1942' },
-      { id: 'ww2-sklep-jansowej', ref: 209, type: 'konspiracja', sort: '1943' },
-      { id: 'ww2-bunkry-promyka', ref: 194, type: 'konspiracja', sort: '1943-05' },
-      { id: 'ww2-pilnikowa-1944', ref: 213, type: 'bitwa', sort: '1944-02-08' },
-      { id: 'ww2-magazyn-cegielnia', ref: 210, type: 'konspiracja', sort: '1944-06' },
-      { id: 'ww2-pole-bandurskiej', ref: 212, type: 'konspiracja', sort: '1944-07-29' },
-      { id: 'ww2-dulag-121', ref: 179, type: 'oboz', sort: '1944-08-06' },
-      { id: 'ww2-brama-zntk', ref: 153, type: 'obiekt', sort: '1944-08' },
-      { id: 'ww2-bunkier-zntk', ref: 154, type: 'obiekt', sort: '1944-08' },
-      { id: 'ww2-wieza-1', ref: 156, type: 'obiekt', sort: '1944-08' },
-      { id: 'ww2-wieza-2', ref: 157, type: 'pamiec', sort: '1944-08' },
-      { id: 'ww2-wieza-3', ref: 158, type: 'obiekt', sort: '1944-08' },
-      { id: 'ww2-ogrod-plebanii', ref: 211, type: 'konspiracja', sort: '1944-09' }
+    "label": "II wojna światowa",
+    "period": "1939–1945",
+    "color": "#E0735F",
+    "mapTitle": "Żbików pod okupacją · Dulag 121",
+    "mapSubtitle": "1939–1945 · walki 1939, Zagłada, Powstanie, obóz przejściowy",
+    "sidesKey": [
+      {
+        "label": "Polacy / AK",
+        "color": "#B3261E"
+      },
+      {
+        "label": "Niemcy",
+        "color": "#1F4E8C"
+      },
+      {
+        "label": "obie strony",
+        "color": "#6B2E83"
+      }
     ],
-    lines: [
-      { id: 'ww2-droga-wypedzonych', type: 'transport', ref: 179, placeholder: true,
-        title: 'Droga wypędzonych mieszkańców Warszawy do Dulagu 121',
-        date: 'VIII–X 1944',
-        desc: 'Do uzupełnienia: przebieg transportów kolejowych i pieszych kolumn do obozu (współrzędne kolejnych punktów).',
-        coords: [] }
+    "intro": "Na Żbikowie nie było długich walk. Najważniejsze są: obóz Dulag 121 w halach Warsztatów Kolejowych (1944–45) i pomoc wypędzonym, Zagłada Żydów, egzekucje i mogiły, walki września 1939 pod Helenowem i Brwinowem oraz Powstanie 1944 w okolicy.",
+    "dataset": "Arkusz „zbikow_II_wojna_swiatowa_research_2.xlsx” (miejsca W01–W37, oś czasu, źródła S01–S28) oraz rekordy bazy głównej.",
+    "phases": [
+      {
+        "label": "Wrzesień 1939",
+        "from": "1939-09-01",
+        "to": "1939-09-30"
+      },
+      {
+        "label": "Okupacja 1939–1944",
+        "from": "1939-10-01",
+        "to": "1944-07-31"
+      },
+      {
+        "label": "Powstanie · 1–5 VIII 1944",
+        "from": "1944-08-01",
+        "to": "1944-08-05"
+      },
+      {
+        "label": "Dulag 121 · VIII 1944 – I 1945",
+        "from": "1944-08-06",
+        "to": "1945-01-17"
+      },
+      {
+        "label": "Pamięć · po 1945",
+        "from": "1945-01-18",
+        "to": "2099-12-31"
+      }
+    ],
+    "sources": {
+      "S01": {
+        "name": "Muzeum Dulag 121: Durchgangslager 121 (hasło encyklopedii)",
+        "url": "http://dulag121.pl/encyklopediaa/durchgangslager-121/",
+        "type": "Muzeum",
+        "note": "Główne źródło o organizacji obozu, numeracji hal, liczbach. Szacunki więźniów 340–650 tys."
+      },
+      "S02": {
+        "name": "Muzeum Dulag 121: Pomoc wypędzonym",
+        "url": "http://dulag121.pl/encyklopediaa/pomoc-wypedzonym/",
+        "type": "Muzeum",
+        "note": "Kuchnia, ambulatoria, akcja „Peron”, szpitale, rola parafii i AK."
+      },
+      "S03": {
+        "name": "Marian Skwara, „Żbików – rys historyczny” (2019)",
+        "url": "http://dulag121.pl/pruskovianaa/skwara-zbikow-rys-historyczny/",
+        "type": "Opracowanie historyka",
+        "note": "Okupacja na Żbikowie: Żydzi, cegielnia Hosera, pomoc dla wypędzonych."
+      },
+      "S04": {
+        "name": "Maria Zima-Marjańska, „Egzekucja na pruszkowskiej żwirowni” (Przystanek Historia IPN, 2021)",
+        "url": "https://przystanekhistoria.pl/pa2/teksty/85258,Egzekucja-na-pruszkowskiej-zwirowni-odwet-za-Powstanie-Warszawskie.html",
+        "type": "Artykuł IPN",
+        "note": "Egzekucje 2 VIII 1944, VI Rejon „Helenów” AK. Autorka omawia rozbieżności liczb."
+      },
+      "S05": {
+        "name": "Muzeum Dulag 121: Historia pruszkowskiego getta",
+        "url": "http://dulag121.pl/pruskovianaa/historia-pruszkowskiego-getta/",
+        "type": "Muzeum (wg Skwary)",
+        "note": "Granice getta, liczby."
+      },
+      "S06": {
+        "name": "Wirtualny Sztetl: Miejsce straceń w Pruszkowie – glinianki przy cegielni (ul. Lipowa)",
+        "url": "https://sztetl.org.pl/pl/miejscowosci/p/597-pruszkow/116-miejsca-martyrologii/49743-miejsce-stracen-w-pruszkowie-glinianki-przy-cegielni-ul-lipowa",
+        "type": "Fragment książki Skwary",
+        "note": "Wymienia wyrobiska cegielni Hosera na Żbikowie."
+      },
+      "S07": {
+        "name": "Wirtualny Sztetl: Getto w Pruszkowie",
+        "url": "https://sztetl.org.pl/pl/miejscowosci/p/597-pruszkow/116-miejsca-martyrologii/49734-getto-w-pruszkowie",
+        "type": "Fragment książki Skwary",
+        "note": "Getto otwarte, 256 izb."
+      },
+      "S08": {
+        "name": "Wikipedia: Bitwa pod Brwinowem (12 IX 1939)",
+        "url": "https://pl.wikipedia.org/wiki/Bitwa_pod_Brwinowem",
+        "type": "Encyklopedia (wtórne)",
+        "note": "Czołgi 4 DPanc. skoncentrowane w Pruszkowie, próba zdobycia Helenowa."
+      },
+      "S09": {
+        "name": "Muzeum Dulag 121: 12 WRZ (bitwa pod Brwinowem)",
+        "url": "http://dulag121.pl/kartka/12-wrze/",
+        "type": "Muzeum",
+        "note": "Największa bitwa 1939 w okolicach Pruszkowa."
+      },
+      "S10": {
+        "name": "Wikipedia EN: Parzniew",
+        "url": "https://en.wikipedia.org/wiki/Parzniew",
+        "type": "Encyklopedia (wtórne)",
+        "note": "Ok. 100 polskich jeńców rozstrzelanych 12 IX 1939."
+      },
+      "S11": {
+        "name": "Zofia Mrówczyńska, „Rys historyczny miasta Pruszkowa” (1996)",
+        "url": "http://dulag121.pl/pruskovianaa/mrowczynska-rys-historyczny-pruszkowa/",
+        "type": "Opracowanie",
+        "note": "1939: nalot 1 IX, ewakuacja 6 IX; 17 I 1945."
+      },
+      "S12": {
+        "name": "Bohaterowie1939.pl: Pruszków–Żbików, mogiła zbiorowa",
+        "url": "https://www.bohaterowie1939.pl/_content.php?a=cementary&itemID=182",
+        "type": "Serwis poświęcony mogiłom 1939",
+        "note": "Adres w serwisie: ul. Domaniewska."
+      },
+      "S13": {
+        "name": "Pruszków Online: Cmentarz żbikowski",
+        "url": "https://pruszkow-online.pl/przewodnik/cmentarz-zbikowski",
+        "type": "Serwis lokalny",
+        "note": "Mogiła żołnierzy WP 1939 przy głównej bramie."
+      },
+      "S14": {
+        "name": "Powiat Pruszkowski: Obchody Dnia Pamięci Więźniów Obozu Dulag 121",
+        "url": "https://samorzad.gov.pl/web/powiat-pruszkowski/obchody-dnia-pamieci-wiezniow-obozu-dulag-121-i-niosacych-im-pomoc",
+        "type": "Administracja",
+        "note": "Tablice przy bramie Cmentarza Żbikowskiego i w Tworkach. Teren obozu dziś MLP Group."
+      },
+      "S15": {
+        "name": "Rzeczpospolita (historia): Pamięci ofiar obozu Dulag w Pruszkowie",
+        "url": "https://historia.rp.pl/historia/art18955801-pamieci-ofiar-obozu-dulag-w-pruszkowie",
+        "type": "Prasa",
+        "note": "Bezimienni więźniowie w zbiorowej mogile na Cmentarzu Żbikowskim."
+      },
+      "S16": {
+        "name": "Miejsca pamięci – Pruszków (pruszkow.sabak.info.pl)",
+        "url": "https://pruszkow.sabak.info.pl/index.php?adres=prusz-pamiec.htm",
+        "type": "Serwis lokalny (niższa wiarygodność)",
+        "note": "Pomniki: ul. Lipowa, Komorowska, Tworki."
+      },
+      "S17": {
+        "name": "Wikipedia EN: Dulag 121 camp in Pruszków",
+        "url": "https://en.wikipedia.org/wiki/Dulag_121_camp_in_Pruszk%C3%B3w",
+        "type": "Encyklopedia (wtórne)",
+        "note": "Powierzchnia 48 ha."
+      },
+      "S18": {
+        "name": "Wikipedia EN: Pruszków",
+        "url": "https://en.wikipedia.org/wiki/Pruszk%C3%B3w",
+        "type": "Encyklopedia (wtórne)",
+        "note": "Palmiry 14 XII 1939: 46 pruszkowian."
+      },
+      "S19": {
+        "name": "Jacek Dobrosz, „Dzieje żbikowskiej parafii” (Regio-Media 2012)",
+        "url": "http://regio-media.pl/2012/09/09/dzieje-zbikowskiej-parafii/",
+        "type": "Publicystyka lokalna",
+        "note": "Wieża kościoła: magazyn broni ZWZ/AK."
+      },
+      "S20": {
+        "name": "Muzeum Dulag 121: Na wycieczkę 3 (Pęcice, Komorów); Wikipedia: Pomnik Mauzoleum w Pęcicach",
+        "url": "http://dulag121.pl/trasy/na-wycieczke-3-pecice-chlebow-komorow/",
+        "type": "Muzeum / encyklopedia",
+        "note": "Bój pod Pęcicami 2 VIII 1944, cmentarz „Na zieleńcu” w Komorowie."
+      },
+      "S21": {
+        "name": "Muzeum Dulag 121: Cegielnia braci Hoser",
+        "url": "https://dulag121.pl/pruskovianaa/cegielnia-braci-hoser/",
+        "type": "Muzeum",
+        "note": "Zdjęcie lotnicze z 1944 z zabudowaniami cegielni."
+      },
+      "S22": {
+        "name": "Archidiecezja Warszawska: Parafia NPNMP w Pruszkowie-Żbikowie",
+        "url": "https://archwwa.pl/parafie/pruszkow-niepokalanego-poczecia-nmp/",
+        "type": "Kuria",
+        "note": "Wieża: magazyn broni ZWZ, potem AK."
+      },
+      "S23": {
+        "name": "Przegląd Pruszkowski 2010 nr 181: „Bój brwinowski – 12 września 1939”",
+        "url": "https://bazhum.muzhp.pl/media/texts/przeglad-pruszkowski/2010-numer-181/przeglad_pruszkowski-r2010-t-n181-s26-38.pdf",
+        "type": "Artykuł (niezapoznany)",
+        "note": "Nie otwierano, tylko wskazówka."
+      },
+      "S24": {
+        "name": "Muzeum Dulag 121: Transporty z obozu Dulag 121",
+        "url": "http://dulag121.pl/encyklopediaa/transporty-z-obozu-dulag-121/",
+        "type": "Muzeum",
+        "note": "Miejsce załadunku, liczby deportowanych (ok. 60 tys. do KL)."
+      },
+      "S25": {
+        "name": "Muzeum Dulag 121: Transporty z Dulagu 121 do KL Stutthof",
+        "url": "https://dulag121.pl/encyklopediaa/transporty-z-dulagu-121-do-kl-stuthoff/",
+        "type": "Muzeum",
+        "note": "Transporty 25 VIII, 31 VIII, 29 IX 1944; przerzucanie jedzenia przez mur."
+      },
+      "S26": {
+        "name": "dzieje.pl: „Upiorne wyzwolenie” – 17 stycznia 1945",
+        "url": "https://dzieje.pl/wiadomosci/upiorne-wyzwolenie-17-stycznia-1945-r-rozpoczela-sie-sowiecka-okupacja-warszawy",
+        "type": "Portal historyczny",
+        "note": "Operacja warszawska 14–17 I 1945: 47 i 61 Armia uderzają w kierunku Błonia."
+      },
+      "S27": {
+        "name": "Portal „Wrona” (Andrzejew): Muzeum Dulag 121",
+        "url": "https://www.portalwrona.com/single-post/muzeum-dulag-121",
+        "type": "Portal regionalny (niższa wiarygodność)",
+        "note": "Makieta obozu, pierwsza tablica pamiątkowa z 1947."
+      },
+      "S28": {
+        "name": "Zdzisław Zaborski i in., „Trwaliśmy przy tobie, Warszawo. Historia konspiracji i walki VI rejonu »Helenów«” (Książnica Pruszkowska)",
+        "url": "https://mbc.cyfrowemazowsze.pl/dlibra/publication/edition/65412/content",
+        "type": "Publikacja zdigitalizowana (niezapoznana)",
+        "note": "Nie otwierano. Kluczowe źródło o AK w Pruszkowie, Piastowie, Ursusie i Sękocinie."
+      }
+    },
+    "events": [
+      {
+        "id": "ww2-w01",
+        "code": "W01",
+        "title": "Dulag 121: teren obozu w Warsztatach Kolejowych (OAW), ul. 3 Maja 8a",
+        "category": "Obóz Dulag 121",
+        "type": "oboz",
+        "date": "6 VIII 1944 – 16/17 I 1945",
+        "sort": "1944-08-06",
+        "desc": "Obóz przejściowy dla ludności wypędzonej z Warszawy i okolic. Niemcy ewakuowali maszyny z hal pod koniec lipca 1944. Hale tylko ponumerowano i ogrodzono drutem. Przeszło przez obóz od 340 do 650 tys. osób. Kierownictwo od 11 VIII: płk Kurt Sieber (Wehrmacht). Gestapo i Arbeitsamt pozostały na terenie. W nocy 16/17 I 1945 Niemcy wycofali załogę.",
+        "where": "dawne ZNTK przy ul. 3 Maja 8a (dziś m.in. MLP Group)",
+        "area": "Żbików",
+        "tracks": "Na torach",
+        "side": "Niemcy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "note": "Dulag pisze, że warsztaty leżą w dzielnicy Żbików przy linii kolei warszawsko-wiedeńskiej. Powierzchnia: 48 ha (S17), 50 ha, 53 ha (S01).",
+        "sources": [
+          "S01",
+          "S14",
+          "S17"
+        ],
+        "from": "1944-08-06",
+        "to": "1945-01-17",
+        "lat": 52.175621,
+        "lng": 20.815648,
+        "approx": "Punkt w środku terenu dawnych Warsztatów; obrys obozu zaznaczony na mapie.",
+        "link": 179,
+        "photosFrom": 179
+      },
+      {
+        "id": "ww2-w02",
+        "code": "W02",
+        "title": "Dulag: hala nr 5 (największa), segregacja więźniów",
+        "category": "Obóz Dulag 121",
+        "type": "oboz",
+        "date": "VIII–X 1944",
+        "sort": "1944-08-07",
+        "desc": "Wypędzeni kierowani zwykle do największej hali nr 5, gdzie czekali od kilku godzin do kilkunastu dni na segregację. Brutalną segregację prowadzili funkcjonariusze Arbeitsamtu i Gestapo z niemieckimi kolejarzami. Dzielono na zdolnych i niezdolnych do pracy (wiek ok. 14–60 lat, oceniany „na oko”).",
+        "where": "hala nr 5 na terenie dawnych warsztatów",
+        "area": "Żbików",
+        "tracks": "Na torach",
+        "side": "Niemcy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "note": "Plan obozu z numerami hal jest na stronie Muzeum (graf. K. Urban): nieotwarty jako obraz.",
+        "sources": [
+          "S01"
+        ],
+        "from": "1944-08-06",
+        "to": "1944-10-31",
+        "lat": 52.175621,
+        "lng": 20.815648,
+        "approx": "Punkt orientacyjny: środek terenu obozu; położenie hali w obrębie obozu do ustalenia (plan obozu, graf. K. Urban)."
+      },
+      {
+        "id": "ww2-w03",
+        "code": "W03",
+        "title": "Dulag: hala nr 1, niezdolni do pracy (transporty do GG)",
+        "category": "Obóz Dulag 121",
+        "type": "oboz",
+        "date": "VIII–X 1944",
+        "sort": "1944-08-10",
+        "desc": "Najliczniejsza grupa: osoby starsze, chore, kobiety z małymi dziećmi. Czekały w hali od kilku do kilkunastu dni na transport w głąb Generalnego Gubernatorstwa.",
+        "where": "hala nr 1",
+        "area": "Żbików",
+        "tracks": "Na torach",
+        "side": "Niemcy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S01"
+        ],
+        "from": "1944-08-06",
+        "to": "1944-10-31",
+        "lat": 52.175621,
+        "lng": 20.815648,
+        "approx": "Punkt orientacyjny: środek terenu obozu; położenie hali w obrębie obozu do ustalenia (plan obozu, graf. K. Urban)."
+      },
+      {
+        "id": "ww2-w04",
+        "code": "W04",
+        "title": "Dulag: hale nr 3 i 4, zdolni do pracy (Rzesza); hala 3 też magazyn dóbr kultury",
+        "category": "Obóz Dulag 121",
+        "type": "oboz",
+        "date": "VIII 1944 – I 1945",
+        "sort": "1944-08-07",
+        "desc": "Osoby zakwalifikowane do pracy w III Rzeszy umieszczano w halach 3 i 4. W hali 3 urządzono magazyn dóbr kultury uratowanych przez grupę Stanisława Lorentza w ramach „akcji pruszkowskiej”.",
+        "where": "hale nr 3 i 4",
+        "area": "Żbików",
+        "tracks": "Na torach",
+        "side": "Niemcy / Polacy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S01"
+        ],
+        "from": "1944-08-06",
+        "to": "1945-01-17",
+        "lat": 52.175621,
+        "lng": 20.815648,
+        "approx": "Punkt orientacyjny: środek terenu obozu; położenie hali w obrębie obozu do ustalenia (plan obozu, graf. K. Urban)."
+      },
+      {
+        "id": "ww2-w05",
+        "code": "W05",
+        "title": "Dulag: hala nr 6, podejrzani o udział w Powstaniu",
+        "category": "Obóz Dulag 121",
+        "type": "oboz",
+        "date": "VIII–X 1944",
+        "sort": "1944-08-07",
+        "desc": "Hala dla osób podejrzewanych przez Gestapo o udział w Powstaniu, kierowanych do obozów koncentracyjnych. Z obozu do KL trafiło 60–70 tys. osób.",
+        "where": "hala nr 6",
+        "area": "Żbików",
+        "tracks": "Na torach",
+        "side": "Niemcy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S01"
+        ],
+        "from": "1944-08-06",
+        "to": "1944-10-31",
+        "lat": 52.175621,
+        "lng": 20.815648,
+        "approx": "Punkt orientacyjny: środek terenu obozu; położenie hali w obrębie obozu do ustalenia (plan obozu, graf. K. Urban)."
+      },
+      {
+        "id": "ww2-w06",
+        "code": "W06",
+        "title": "Dulag: hala nr 2 (komisja lekarska) i budynek 2B (szpital zakaźny)",
+        "category": "Obóz Dulag 121",
+        "type": "szpital",
+        "date": "od 11 VIII 1944",
+        "sort": "1944-08-11",
+        "desc": "W hali w centrum obozu działała niemiecka komisja lekarska, decydująca o zwolnieniach i transportach. W sąsiednim budynku 2B prowizoryczny szpital zakaźny, w którym lekarzami byli jeńcy radzieccy. Polskie tłumaczki wpisywały zagrożonych na listy zwolnionych.",
+        "where": "hala nr 2 i budynek 2B",
+        "area": "Żbików",
+        "tracks": "Na torach",
+        "side": "Niemcy / Polacy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S01",
+          "S02"
+        ],
+        "from": "1944-08-11",
+        "to": "1945-01-17",
+        "lat": 52.175621,
+        "lng": 20.815648,
+        "approx": "Punkt orientacyjny: środek terenu obozu; położenie hali w obrębie obozu do ustalenia (plan obozu, graf. K. Urban)."
+      },
+      {
+        "id": "ww2-w07",
+        "code": "W07",
+        "title": "Dulag: hale nr 7 i 8, jeńcy i szpital powstańców",
+        "category": "Obóz Dulag 121",
+        "type": "oboz",
+        "date": "IX–X 1944",
+        "sort": "1944-09-28",
+        "desc": "Pod koniec września do izolowanej hali 7 trafił ok. 1200-osobowy oddział z Mokotowa, potem powstańcy z Żoliborza. Hala 8: szpital dla powstańców. Od drugiej połowy października w hali 7 więźniowie z łapanek pod Warszawą.",
+        "where": "hale nr 7 i 8",
+        "area": "Żbików",
+        "tracks": "Na torach",
+        "side": "Niemcy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S01"
+        ],
+        "from": "1944-09-01",
+        "to": "1944-10-31",
+        "lat": 52.175621,
+        "lng": 20.815648,
+        "approx": "Punkt orientacyjny: środek terenu obozu; położenie hali w obrębie obozu do ustalenia (plan obozu, graf. K. Urban)."
+      },
+      {
+        "id": "ww2-w08",
+        "code": "W08",
+        "title": "Dulag: hala nr 13, Arbeitskommando rabujące Warszawę",
+        "category": "Obóz Dulag 121",
+        "type": "oboz",
+        "date": "XI 1944 – I 1945",
+        "sort": "1944-11",
+        "desc": "Oddział warszawiaków zmuszanych do rabowania wysiedlonej i burzonej Warszawy. Część łupów trafiała do obozu.",
+        "where": "hala nr 13",
+        "area": "Żbików",
+        "tracks": "Na torach",
+        "side": "Niemcy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S01"
+        ],
+        "from": "1944-11-01",
+        "to": "1945-01-17",
+        "lat": 52.175621,
+        "lng": 20.815648,
+        "approx": "Punkt orientacyjny: środek terenu obozu; położenie hali w obrębie obozu do ustalenia (plan obozu, graf. K. Urban)."
+      },
+      {
+        "id": "ww2-w09",
+        "code": "W09",
+        "title": "Dulag: „zielony wagon”, siedziba Gestapo (Heinrich Diehl)",
+        "category": "Obóz Dulag 121",
+        "type": "obiekt",
+        "date": "VIII 1944 – I 1945",
+        "sort": "1944-08-06",
+        "desc": "Siedziba szefa obozowego Gestapo SS-Obersturmbannführera Heinricha Diehla. Gestapo nadzorowało segregację i kierunki transportów.",
+        "where": "na terenie obozu, dokładne miejsce nieznane",
+        "area": "Żbików",
+        "tracks": "Na torach",
+        "side": "Niemcy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S01"
+        ],
+        "from": "1944-08-06",
+        "to": "1945-01-17",
+        "lat": 52.175621,
+        "lng": 20.815648,
+        "approx": "Punkt orientacyjny: teren obozu; dokładne miejsce nieznane."
+      },
+      {
+        "id": "ww2-w10",
+        "code": "W10",
+        "title": "Dulag: kuchnia obozowa (Maria Bogucka)",
+        "category": "Pomoc wypędzonym",
+        "type": "pomoc",
+        "date": "od 6 VIII 1944",
+        "sort": "1944-08-06",
+        "desc": "Polska kuchnia uruchomiona od pierwszych dni. W szczycie pracowało do 480 osób, wydawano do 35 tys. posiłków dziennie. Produkty z zapasów VI Rejonu „Helenów” AK, RGO i darów mieszkańców Pruszkowa, Pęcic, Reguł, Duchnic, Parzniewa, Moszny.",
+        "where": "na terenie obozu, miejsce nieznane",
+        "area": "Żbików",
+        "tracks": "Na torach",
+        "side": "Polacy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S02"
+        ],
+        "from": "1944-08-06",
+        "to": "1945-01-17",
+        "lat": 52.175621,
+        "lng": 20.815648,
+        "approx": "Punkt orientacyjny: teren obozu; dokładne miejsce nieznane."
+      },
+      {
+        "id": "ww2-w11",
+        "code": "W11",
+        "title": "Dulag: ambulatoria w halach (dr Kazimierz Szupryczyński „Bożymir”)",
+        "category": "Pomoc wypędzonym",
+        "type": "szpital",
+        "date": "VIII–X 1944",
+        "sort": "1944-08-06",
+        "desc": "Sieć prowizorycznych ambulatoriów w halach, zorganizowana z inicjatywy naczelnego lekarza VI Rejonu „Helenów” AK. Ciężko chorych odsyłano do szpitali poza obozem.",
+        "where": "hale obozu",
+        "area": "Żbików",
+        "tracks": "Na torach",
+        "side": "Polacy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S02"
+        ],
+        "from": "1944-08-06",
+        "to": "1944-10-31",
+        "lat": 52.175621,
+        "lng": 20.815648,
+        "approx": "Punkt orientacyjny: ambulatoria działały w halach obozu."
+      },
+      {
+        "id": "ww2-w12",
+        "code": "W12",
+        "title": "Linia kolejowa i peron: akcja „Peron”, ucieczki z transportów",
+        "category": "Pomoc wypędzonym",
+        "type": "pomoc",
+        "date": "VIII–X 1944",
+        "sort": "1944-08-07",
+        "desc": "Kolejarze i pracownicy EKD ułatwiali ucieczki z transportów i zwalniali bieg pociągów, aby uczestnicy akcji „Peron” mogli wrzucać żywność do wagonów jadących do obozu. Wypędzeni wyrzucali też z okienek karteczki z adresami, zbierane przez kolejarzy i harcerzy.",
+        "where": "linia Warszawa–Pruszków przy obozie",
+        "area": "Żbików",
+        "tracks": "Na torach",
+        "side": "Polacy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S02"
+        ],
+        "from": "1944-08-06",
+        "to": "1944-10-31",
+        "lat": 52.1719,
+        "lng": 20.816,
+        "approx": "Punkt orientacyjny: linia kolejowa przy obozie."
+      },
+      {
+        "id": "ww2-w13",
+        "code": "W13",
+        "title": "Pomnik „Tędy przeszła Warszawa” i napis na murze przy torach",
+        "category": "Upamiętnienie",
+        "type": "pamiec",
+        "date": "po 1944",
+        "sort": "1945",
+        "desc": "Napis na pomniku i na murze, który mijają pociągi do Skierniewic. Przy pomniku odbywają się obchody Dnia Pamięci Więźniów Obozu Dulag 121.",
+        "where": "ul. 3 Maja 8A, teren dawnego obozu",
+        "area": "Żbików",
+        "tracks": "Na torach",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S14",
+          "S17"
+        ],
+        "from": "1945-01-18",
+        "to": "2099-12-31",
+        "at": "ul-3-maja-8",
+        "link": 157
+      },
+      {
+        "id": "ww2-w14",
+        "code": "W14",
+        "title": "Kościół NPNMP na Żbikowie: apel 6 VIII 1944 i magazyn broni w wieży",
+        "category": "Pomoc wypędzonym",
+        "type": "pomoc",
+        "date": "1939–1945; 6 VIII 1944",
+        "sort": "1944-08-06",
+        "desc": "6 VIII 1944 wieczorem proboszcz ks. Franciszek Dyżewski ogłosił apel o zbiórkę żywności i naczyń dla obozu. W czasie okupacji w wieży kościoła mieścił się magazyn broni ZWZ, potem AK.",
+        "where": "Żbików, ul. 3 Maja",
+        "area": "Żbików",
+        "tracks": "Północ",
+        "side": "Polacy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S02",
+          "S22",
+          "S19"
+        ],
+        "from": "1939-09-01",
+        "to": "1945-01-17",
+        "lat": 52.180644,
+        "lng": 20.785821,
+        "link": 7
+      },
+      {
+        "id": "ww2-w15",
+        "code": "W15",
+        "title": "Domy mieszkańców Żbikowa: zbiórki, pomoc w ucieczkach, przechowywanie uciekinierów",
+        "category": "Pomoc wypędzonym",
+        "type": "pomoc",
+        "date": "VIII 1944 – 1945",
+        "sort": "1944-08",
+        "desc": "Żbikowianie organizowali zbiórki żywności, ubrań i naczyń, pomagali w ucieczkach z obozu i przechowywali uciekinierów w okolicznych domach.",
+        "where": "adresy nieznane",
+        "area": "Żbików",
+        "tracks": "Północ",
+        "side": "Polacy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "note": "Źródła prawie nigdy nie podają adresów. Ślad do zbadania w relacjach świadków.",
+        "sources": [
+          "S03",
+          "S02"
+        ],
+        "from": "1944-08-01",
+        "to": "1945-12-31"
+      },
+      {
+        "id": "ww2-w16",
+        "code": "W16",
+        "title": "Kościół św. Kazimierza: delegatura PolKO (ks. Edward Tyszka)",
+        "category": "Pomoc wypędzonym",
+        "type": "pomoc",
+        "date": "6 VIII 1944",
+        "sort": "1944-08-06",
+        "desc": "Proboszcz ks. Edward Tyszka był przewodniczącym pruszkowskiej delegatury Polskiego Komitetu Opiekuńczego (RGO) i też ogłosił apel o pomoc.",
+        "where": "kościół św. Kazimierza",
+        "area": "Pruszków",
+        "tracks": "Do ustalenia",
+        "side": "Polacy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S02"
+        ],
+        "from": "1944-08-06",
+        "to": "1944-08-06",
+        "lat": 52.162348,
+        "lng": 20.809598
+      },
+      {
+        "id": "ww2-w17",
+        "code": "W17",
+        "title": "Szpital powiatowy przy ul. Pięknej",
+        "category": "Szpital",
+        "type": "szpital",
+        "date": "VIII–X 1944",
+        "sort": "1944-08-06",
+        "desc": "Jeden z pruszkowskich szpitali, do których kierowano rannych i chorych z obozu.",
+        "where": "ul. Piękna",
+        "area": "Żbików / Pruszków",
+        "tracks": "Południe",
+        "side": "Polacy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "note": "Ul. Piękna leżała po południowej stronie torów (Skwara).",
+        "sources": [
+          "S02",
+          "S03"
+        ],
+        "from": "1944-08-06",
+        "to": "1944-10-31",
+        "lat": 52.171979,
+        "lng": 20.812155,
+        "approx": "Punkt orientacyjny: ul. Piękna; budynek szpitala do ustalenia."
+      },
+      {
+        "id": "ww2-w18",
+        "code": "W18",
+        "title": "Szpital w Tworkach: II pawilon dla rannych z Dulagu; cmentarz szpitalny z tablicą",
+        "category": "Szpital",
+        "type": "szpital",
+        "date": "VIII–X 1944",
+        "sort": "1944-08-06",
+        "desc": "W II pawilonie utworzono szpital dla rannych z obozu. Na cmentarzu szpitalnym (założonym w 1924) są mogiły ofiar Dulagu, tablica ku czci więźniów, powstańców i ofiar cywilnych.",
+        "where": "Szpital w Tworkach, ul. Partyzantów 2/4",
+        "area": "Tworki",
+        "tracks": "Południe",
+        "side": "Polacy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "note": "Tworki leżą na południe od torów.",
+        "sources": [
+          "S02",
+          "S14",
+          "S16"
+        ],
+        "from": "1944-08-06",
+        "to": "1944-10-31",
+        "lat": 52.16868,
+        "lng": 20.827208
+      },
+      {
+        "id": "ww2-w19",
+        "code": "W19",
+        "title": "Wyrobiska cegielni Hosera na Żbikowie (dziś Park Mazowsze): egzekucje",
+        "category": "Egzekucje",
+        "type": "represje",
+        "date": "1939–1944",
+        "sort": "1940",
+        "desc": "Sporadycznie rozstrzeliwano tu ludzi, według Skwary „wyłapywanych Żydów”. Największe miejsca straceń leżały jednak przy ul. Lipowej, Żwirowej i w Parku Potulickich.",
+        "where": "Park Mazowsze, Glinki Hosera, ul. Mostowa",
+        "area": "Żbików",
+        "tracks": "Północ",
+        "side": "Niemcy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "note": "Skala egzekucji na Żbikowie nieznana. Łączna liczba ponad 900 rozstrzelanych w Pruszkowie dotyczy glinianek Hosera i Potulickich oraz parku (S04).",
+        "sources": [
+          "S06",
+          "S03",
+          "S21"
+        ],
+        "from": "1939-09-01",
+        "to": "1944-12-31",
+        "lat": 52.184054,
+        "lng": 20.801618,
+        "approx": "Punkt orientacyjny: Park Mazowsze (dawne wyrobiska cegielni Hosera)."
+      },
+      {
+        "id": "ww2-w20",
+        "code": "W20",
+        "title": "Żbików: 8 domów żydowskich odebranych przez okupanta",
+        "category": "Zagłada Żydów",
+        "type": "zaglada",
+        "date": "1939–1941",
+        "sort": "1940",
+        "desc": "Żbikowskim Żydom okupanci odebrali wszystkie nieruchomości (8 domów), a ich samych zamknięto w pruszkowskim getcie. Wojnę przeżyły tylko jednostki.",
+        "where": "adresy nieznane",
+        "area": "Żbików",
+        "tracks": "Północ",
+        "side": "Niemcy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "note": "Adresy do ustalenia z książki Skwary „Pruszkowscy Żydzi” (2007).",
+        "sources": [
+          "S03"
+        ],
+        "from": "1939-09-01",
+        "to": "1941-02-28"
+      },
+      {
+        "id": "ww2-w21",
+        "code": "W21",
+        "title": "Getto w Pruszkowie: kwartał ulic Pęcicka (dziś AK), Komorowska, Ceramiczna, Polna",
+        "category": "Zagłada Żydów",
+        "type": "zaglada",
+        "date": "ok. 15 XI 1940 – II 1941",
+        "sort": "1940-11-15",
+        "desc": "1331 osób w 29 domach (256 izb), getto otwarte, nadzorowane przez policjanta. Niemal wszystkich mieszkańców deportowano do warszawskiego getta.",
+        "where": "kwartał ulic Armii Krajowej, Komorowska, Ceramiczna, Polna",
+        "area": "Pruszków",
+        "tracks": "Do ustalenia",
+        "side": "Niemcy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "note": "Pęcicka należała do południowej dzielnicy osady (Mrówczyńska), więc getto leżało prawdopodobnie po południowej stronie torów.",
+        "sources": [
+          "S05",
+          "S07"
+        ],
+        "from": "1940-11-15",
+        "to": "1941-02-28",
+        "lat": 52.158,
+        "lng": 20.8055,
+        "approx": "Punkt orientacyjny: kwartał ulic Armii Krajowej (dawnej Pęcickiej), Komorowskiej, Ceramicznej i Polnej."
+      },
+      {
+        "id": "ww2-w22",
+        "code": "W22",
+        "title": "Glinianki i żwirownia przy ul. Lipowej / Żwirowej: egzekucje (2 VIII 1944 i inne)",
+        "category": "Egzekucje",
+        "type": "represje",
+        "date": "1939–1945; 2 VIII 1944",
+        "sort": "1944-08-02",
+        "desc": "2 VIII 1944 żandarmi rozstrzelali tu co najmniej 27–34 mężczyzn pojmanych w odwecie za Powstanie, w tym żołnierzy VI Rejonu „Helenów” AK. W latach 1939–45 przy Lipowej i żwirowni zamordowano ok. 800 Polaków, także Żydów z getta.",
+        "where": "ul. Lipowa, Żwirowa, rogu Komorowskiej",
+        "area": "Pruszków (Komorów)",
+        "tracks": "Do ustalenia",
+        "side": "Niemcy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "note": "Liczby się różnią (patrz Do_sprawdzenia). Miejsce w południowej części miasta (S04).",
+        "sources": [
+          "S04",
+          "S06",
+          "S16"
+        ],
+        "from": "1939-09-01",
+        "to": "1945-01-17",
+        "lat": 52.1547,
+        "lng": 20.8058,
+        "approx": "Punkt orientacyjny: rejon ulic Żwirowej i Komorowskiej."
+      },
+      {
+        "id": "ww2-w23",
+        "code": "W23",
+        "title": "Posterunek żandarmerii przy ul. Kraszewskiego 16: egzekucje na zapleczu",
+        "category": "Egzekucje",
+        "type": "represje",
+        "date": "1939–1945",
+        "sort": "1940",
+        "desc": "Wiele egzekucji dokonano na zapleczu siedziby żandarmerii.",
+        "where": "ul. Kraszewskiego 16",
+        "area": "Pruszków",
+        "tracks": "Do ustalenia",
+        "side": "Niemcy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S06",
+          "S04"
+        ],
+        "from": "1939-09-01",
+        "to": "1945-01-17",
+        "lat": 52.162495,
+        "lng": 20.81258,
+        "approx": "Punkt orientacyjny: dzisiejszy budynek przy ul. Kraszewskiego 14/16."
+      },
+      {
+        "id": "ww2-w24",
+        "code": "W24",
+        "title": "Park Potulickich: egzekucje",
+        "category": "Egzekucje",
+        "type": "represje",
+        "date": "1944",
+        "sort": "1944",
+        "desc": "Sporadycznie rozstrzeliwano tu ludzi.",
+        "where": "Park Potulickich",
+        "area": "Pruszków",
+        "tracks": "Do ustalenia",
+        "side": "Niemcy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S06",
+          "S04"
+        ],
+        "from": "1944-01-01",
+        "to": "1944-12-31",
+        "lat": 52.166221,
+        "lng": 20.813737
+      },
+      {
+        "id": "ww2-w25",
+        "code": "W25",
+        "title": "Cmentarz żbikowski: mogiła zbiorowa żołnierzy WP poległych we wrześniu 1939",
+        "category": "Cmentarz / mogiła",
+        "type": "pamiec",
+        "date": "IX 1939",
+        "sort": "1939-09",
+        "desc": "Zbiorowa mogiła wojenna przy głównej bramie cmentarza parafii NPNMP.",
+        "where": "cmentarz żbikowski, główna brama",
+        "area": "Żbików",
+        "tracks": "Północ",
+        "side": "Polacy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "note": "Adres w serwisie Bohaterowie1939: ul. Domaniewska.",
+        "sources": [
+          "S12",
+          "S13"
+        ],
+        "from": "1939-09-01",
+        "to": "1939-09-30",
+        "at": "ul-domaniewska-cmentarz-zbikowski",
+        "link": 214
+      },
+      {
+        "id": "ww2-w26",
+        "code": "W26",
+        "title": "Cmentarz żbikowski: zbiorowe mogiły więźniów Dulagu, tablica przy głównej bramie",
+        "category": "Cmentarz / mogiła",
+        "type": "pamiec",
+        "date": "VIII 1944 – I 1945",
+        "sort": "1944-08",
+        "desc": "Bezimienni zmarli i zamordowani więźniowie obozu pochowani w zbiorowych mogiłach. Przy głównej bramie tablica, pod którą składa się kwiaty.",
+        "where": "cmentarz żbikowski, główna brama",
+        "area": "Żbików",
+        "tracks": "Północ",
+        "side": "Niemcy (ofiary)",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S15",
+          "S14"
+        ],
+        "from": "1944-08-06",
+        "to": "1945-01-31",
+        "at": "ul-domaniewska-cmentarz-zbikowski"
+      },
+      {
+        "id": "ww2-w27",
+        "code": "W27",
+        "title": "Komorów: cmentarz „Na zieleńcu” (róg ul. Kolejowej i Krótkiej)",
+        "category": "Cmentarz / mogiła",
+        "type": "pamiec",
+        "date": "IX–X 1944",
+        "sort": "1944-10-09",
+        "desc": "Prowizoryczny cmentarz zmarłych ze szpitala RGO: warszawiacy zwolnieni z obozu jako niezdolni do pracy. Pochowano tu m.in. Aleksandra Janowskiego (zm. 9 X 1944, później ekshumowany na Powązki). Po wojnie ekshumowano 34 osoby.",
+        "where": "róg ul. Kolejowej i Krótkiej, Komorów",
+        "area": "Komorów",
+        "tracks": "Do ustalenia",
+        "side": "Niemcy (ofiary)",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "note": "Poza obszarem Żbikowa.",
+        "sources": [
+          "S20"
+        ],
+        "from": "1944-09-01",
+        "to": "1944-10-31",
+        "lat": 52.1484,
+        "lng": 20.81,
+        "approx": "Punkt orientacyjny: róg ul. Kolejowej i Krótkiej w Komorowie."
+      },
+      {
+        "id": "ww2-w28",
+        "code": "W28",
+        "title": "Pęcice: bój 2 VIII 1944 (AK Ochota) i pomnik-mauzoleum",
+        "category": "Powstanie 1944",
+        "type": "powstanie",
+        "date": "2 VIII 1944",
+        "sort": "1944-08-02",
+        "desc": "Oddziały AK IV obwodu wycofujące się z Ochoty natknęły się na Niemców na drodze z Reguł do Pęcic. Według Dulagu poległo 31 powstańców, 67 wzięto do niewoli, 60 rozstrzelano w pęcickiej cegielni. Po ekshumacji w 1946 złożono ich w mauzoleum w parku dworskim.",
+        "where": "Pęcice, park dworski, pomnik-mauzoleum",
+        "area": "Pęcice",
+        "tracks": "Do ustalenia",
+        "side": "Niemcy / AK",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "note": "Wikipedia: mauzoleum 88 poległych. Liczby do zweryfikowania.",
+        "sources": [
+          "S20"
+        ],
+        "from": "1944-08-02",
+        "to": "1944-08-02",
+        "lat": 52.156153,
+        "lng": 20.84784
+      },
+      {
+        "id": "ww2-w29",
+        "code": "W29",
+        "title": "Lasy Sękocińskie: VI Rejon „Helenów” AK po nieudanej mobilizacji",
+        "category": "Powstanie 1944",
+        "type": "powstanie",
+        "date": "1–3 VIII 1944",
+        "sort": "1944-08-01",
+        "desc": "1 VIII żołnierze VI Rejonu podjęli akcje, część ostrzelano w drodze na zbiórkę. Żołnierze ruszyli do Lasów Sękocińskich w oczekiwaniu na zrzuty. 3 VIII komendant „Paweł” nakazał powrót do konspiracji z powodu represji.",
+        "where": "Lasy Sękocińskie",
+        "area": "Sękocin",
+        "tracks": "Do ustalenia",
+        "side": "AK",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S04"
+        ],
+        "from": "1944-08-01",
+        "to": "1944-08-03",
+        "lat": 52.101223,
+        "lng": 20.891504,
+        "approx": "Punkt orientacyjny: Sękocin-Las (Lasy Sękocińskie)."
+      },
+      {
+        "id": "ww2-w30",
+        "code": "W30",
+        "title": "Helenów: atak I batalionu 36 pp załamany 12 IX 1939",
+        "category": "Walki 1939",
+        "type": "bitwa",
+        "date": "12 IX 1939",
+        "sort": "1939-09-12",
+        "desc": "Około południa I batalion 36 pp (Legia Akademicka) uderzył na Helenów, atak załamał się w ogniu moździerzy i broni maszynowej. Ok. 13:00 od strony Helenowa uderzyły czołgi 4 Dywizji Pancernej.",
+        "where": "Helenów",
+        "area": "Helenów",
+        "tracks": "Do ustalenia",
+        "side": "Polacy / Niemcy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "note": "Ten sam Helenów był w 1914 niemiecką bazą artylerii.",
+        "sources": [
+          "S08",
+          "S09"
+        ],
+        "from": "1939-09-12",
+        "to": "1939-09-12",
+        "lat": 52.150532,
+        "lng": 20.785705,
+        "approx": "Punkt orientacyjny: Helenów (pałac Potockich)."
+      },
+      {
+        "id": "ww2-w31",
+        "code": "W31",
+        "title": "Pruszków: koncentracja czołgów 4 Dywizji Pancernej 12 IX 1939",
+        "category": "Walki 1939",
+        "type": "bitwa",
+        "date": "12 IX 1939",
+        "sort": "1939-09-12",
+        "desc": "Niemcy skoncentrowali w Pruszkowie oddział czołgów przeciw polskiemu zgrupowaniu pod Brwinowem.",
+        "where": "Pruszków, miejsce nieznane",
+        "area": "Pruszków",
+        "tracks": "Do ustalenia",
+        "side": "Niemcy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "note": "Brak lokalizacji. Kalendaria piszą o walce „o Brwinów oraz Pruszków”.",
+        "sources": [
+          "S08",
+          "S09"
+        ],
+        "from": "1939-09-12",
+        "to": "1939-09-12"
+      },
+      {
+        "id": "ww2-w32",
+        "code": "W32",
+        "title": "Parzniew: rozstrzelanie ok. 100 polskich jeńców 12 IX 1939",
+        "category": "Egzekucje",
+        "type": "represje",
+        "date": "12 IX 1939",
+        "sort": "1939-09-12",
+        "desc": "Wehrmacht rozstrzelał ok. 100 jeńców. Pomnik ofiar.",
+        "where": "Parzniew (gm. Brwinów)",
+        "area": "Parzniew",
+        "tracks": "Do ustalenia",
+        "side": "Niemcy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "note": "Poza obszarem. Tylko Wikipedia EN, do potwierdzenia w polskiej literaturze.",
+        "sources": [
+          "S10"
+        ],
+        "from": "1939-09-12",
+        "to": "1939-09-12",
+        "lat": 52.152222,
+        "lng": 20.762777,
+        "approx": "Punkt orientacyjny: wieś Parzniew; miejsce egzekucji i pomnik do ustalenia."
+      },
+      {
+        "id": "ww2-w33",
+        "code": "W33",
+        "title": "Domy przy torach uszkodzone w nalocie 1 IX 1939",
+        "category": "Nalot i zniszczenia",
+        "type": "zniszczenie",
+        "date": "1 IX 1939",
+        "sort": "1939-09-01",
+        "desc": "Podczas nalotu uszkodzono trzy domy w pobliżu torów kolejowych. Pruszków nie poniósł dużych strat materialnych w 1939.",
+        "where": "w pobliżu torów, dokładnie nieznane",
+        "area": "Pruszków",
+        "tracks": "Na torach",
+        "side": "Niemcy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S11"
+        ],
+        "from": "1939-09-01",
+        "to": "1939-09-01"
+      },
+      {
+        "id": "ww2-w34",
+        "code": "W34",
+        "title": "Filie Dulagu: Ursus (PZInż), Piastów (Tudor), Włochy (Era), Grodzisk",
+        "category": "Obóz Dulag 121",
+        "type": "oboz",
+        "date": "od początku X 1944",
+        "sort": "1944-10",
+        "desc": "Gdy obóz w Pruszkowie nie mógł przyjąć wszystkich, uruchomiono filie w Ursusie i Piastowie. Wypędzeni trafiali też do obozów w Grodzisku i we Włochach.",
+        "where": "Ursus, Piastów, Włochy, Grodzisk Maz.",
+        "area": "poza obszarem",
+        "tracks": "Do ustalenia",
+        "side": "Niemcy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S01"
+        ],
+        "from": "1944-10-01",
+        "to": "1945-01-17"
+      },
+      {
+        "id": "ww2-w35",
+        "code": "W35",
+        "title": "Dulag: tory wzdłuż wewnętrznej strony południowo-wschodniego muru, załadunek transportów",
+        "category": "Obóz Dulag 121",
+        "type": "oboz",
+        "date": "VIII 1944 – I 1945",
+        "sort": "1944-08-10",
+        "desc": "Składy pociągów towarowych podstawiano na tory biegnące po wewnętrznej stronie południowo-wschodniego muru obozu. Stąd ruszały transporty do GG, Rzeszy i obozów koncentracyjnych (do KL ok. 60 tys. osób, w tym Auschwitz ok. 13,5 tys., Stutthof ok. 4,5 tys.).",
+        "where": "południowo-wschodni mur obozu, przy torach",
+        "area": "Żbików",
+        "tracks": "Na torach",
+        "side": "Niemcy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "sources": [
+          "S24",
+          "S25"
+        ],
+        "from": "1944-08-06",
+        "to": "1945-01-17",
+        "lat": 52.176799,
+        "lng": 20.824417,
+        "approx": "Punkt orientacyjny: południowo-wschodnia część terenu obozu; odcinek muru i torów do ustalenia."
+      },
+      {
+        "id": "ww2-w36",
+        "code": "W36",
+        "title": "Dulag: mur obozu, miejsce przerzucania jedzenia i kontaktu z więźniami",
+        "category": "Pomoc wypędzonym",
+        "type": "pomoc",
+        "date": "VIII–X 1944",
+        "sort": "1944-08-07",
+        "desc": "Pod murem panowało największe ożywienie: przerzucano przez niego do obozu małe opakowania z jedzeniem, a mieszkańcy nawiązywali kontakt z więźniami i przekazywali wiadomości rodzinom.",
+        "where": "mur obozu, ul. 3 Maja i okolice",
+        "area": "Żbików",
+        "tracks": "Na torach",
+        "side": "Polacy",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "note": "Odcinek muru nieznany.",
+        "sources": [
+          "S25",
+          "S02"
+        ],
+        "from": "1944-08-06",
+        "to": "1944-10-31",
+        "lat": 52.1730618,
+        "lng": 20.8075932,
+        "approx": "Punkt orientacyjny: mur obozu od strony ul. 3 Maja; odcinek muru nieznany."
+      },
+      {
+        "id": "ww2-w37",
+        "code": "W37",
+        "title": "Muzeum Dulag 121: makieta obozu i ściana pamięci",
+        "category": "Upamiętnienie",
+        "type": "pamiec",
+        "date": "po 1947",
+        "sort": "1947",
+        "desc": "Wygląd obozu pokazuje makieta wykonana na podstawie archiwalnych fotografii i relacji. Ściana pamięci wymienia miejsca, dokąd kierowano transporty. Pierwszą tablicę pamiątkową odsłonięto już w 1947.",
+        "where": "ul. 3 Maja 8A",
+        "area": "Żbików",
+        "tracks": "Na torach",
+        "certainty": "Potwierdzone (źródło wtórne)",
+        "note": "Gdzie wisiała tablica z 1947, nie wiadomo.",
+        "sources": [
+          "S27",
+          "S17"
+        ],
+        "from": "1947-01-01",
+        "to": "2099-12-31",
+        "at": "oboz-przejsciowy-dulag-121",
+        "link": 179
+      },
+      {
+        "id": "ww2-mogila-nieznanego-1939",
+        "ref": 215,
+        "type": "pamiec",
+        "sort": "1939-09",
+        "from": "1939-09-01",
+        "to": "1939-09-30"
+      },
+      {
+        "id": "ww2-oboz-jeniecki-1939",
+        "ref": 177,
+        "type": "oboz",
+        "sort": "1939-10",
+        "from": "1939-10-01",
+        "to": "1939-12-31"
+      },
+      {
+        "id": "ww2-ostbahn",
+        "ref": 72,
+        "type": "obiekt",
+        "sort": "1939-11",
+        "from": "1939-10-01",
+        "to": "1945-01-17"
+      },
+      {
+        "id": "ww2-wiezyczki",
+        "ref": 22,
+        "type": "obiekt",
+        "sort": "1940",
+        "from": "1939-10-01",
+        "to": "1945-01-17"
+      },
+      {
+        "id": "ww2-oboz-pracy-1941",
+        "ref": 178,
+        "type": "oboz",
+        "sort": "1941-01-20",
+        "from": "1941-01-20"
+      },
+      {
+        "id": "ww2-majatek-zbikow",
+        "ref": 208,
+        "type": "konspiracja",
+        "sort": "1942",
+        "from": "1942-01-01",
+        "to": "1944-05-09"
+      },
+      {
+        "id": "ww2-egzekucje-kowalskiego",
+        "ref": 218,
+        "type": "represje",
+        "sort": "1942",
+        "from": "1942-01-01",
+        "to": "1944-12-31"
+      },
+      {
+        "id": "ww2-sklep-jansowej",
+        "ref": 209,
+        "type": "konspiracja",
+        "sort": "1943",
+        "from": "1943-01-01",
+        "to": "1944-12-31"
+      },
+      {
+        "id": "ww2-bunkry-promyka",
+        "ref": 194,
+        "type": "konspiracja",
+        "sort": "1943-05",
+        "from": "1943-05-01",
+        "to": "1944-06-03"
+      },
+      {
+        "id": "ww2-pilnikowa-1944",
+        "ref": 213,
+        "type": "bitwa",
+        "sort": "1944-02-08",
+        "from": "1944-02-08",
+        "to": "1944-02-08",
+        "side": "Niemcy / AL"
+      },
+      {
+        "id": "ww2-magazyn-cegielnia",
+        "ref": 210,
+        "type": "konspiracja",
+        "sort": "1944-06",
+        "from": "1944-01-01",
+        "to": "1944-06-30"
+      },
+      {
+        "id": "ww2-pole-bandurskiej",
+        "ref": 212,
+        "type": "konspiracja",
+        "sort": "1944-07-29",
+        "from": "1944-07-29",
+        "to": "1944-08-02"
+      },
+      {
+        "id": "ww2-brama-zntk",
+        "ref": 153,
+        "type": "obiekt",
+        "sort": "1944-08",
+        "from": "1944-08-06",
+        "to": "1945-01-17"
+      },
+      {
+        "id": "ww2-bunkier-zntk",
+        "ref": 154,
+        "type": "obiekt",
+        "sort": "1944-08",
+        "from": "1944-08-06",
+        "to": "1945-01-17"
+      },
+      {
+        "id": "ww2-wieza-1",
+        "ref": 156,
+        "type": "obiekt",
+        "sort": "1944-08",
+        "from": "1944-08-06",
+        "to": "1945-01-17"
+      },
+      {
+        "id": "ww2-wieza-3",
+        "ref": 158,
+        "type": "obiekt",
+        "sort": "1944-08",
+        "from": "1944-08-06",
+        "to": "1945-01-17"
+      },
+      {
+        "id": "ww2-ogrod-plebanii",
+        "ref": 211,
+        "type": "konspiracja",
+        "sort": "1944-09",
+        "from": "1944-09-01",
+        "to": "1944-09-30"
+      }
+    ],
+    "lines": [
+      {
+        "id": "ww2-atak-helenow",
+        "type": "atak",
+        "side": "Polacy",
+        "color": "#B3261E",
+        "label": "atak I/36 pp na Helenów · 12 IX",
+        "title": "Atak I batalionu 36 pp Legii Akademickiej na Helenów",
+        "date": "12 IX 1939, ok. południa",
+        "desc": "Atak załamał się w ogniu moździerzy i broni maszynowej. Kierunek schematycznie: od zgrupowania pod Brwinowem.",
+        "sources": [
+          "S08",
+          "S09"
+        ],
+        "from": "1939-09-12",
+        "to": "1939-09-12",
+        "coords": [
+          [
+            52.144762,
+            20.716389
+          ],
+          [
+            52.152739,
+            20.785024
+          ]
+        ]
+      },
+      {
+        "id": "ww2-czolgi",
+        "type": "atak",
+        "side": "Niemcy",
+        "color": "#1F4E8C",
+        "label": "czołgi 4 DPanc. · 12 IX 13:00",
+        "title": "Uderzenie czołgów 4 Dywizji Pancernej od strony Helenowa",
+        "date": "12 IX 1939, ok. 13:00",
+        "desc": "Czołgi skoncentrowane w Pruszkowie uderzyły od strony Helenowa na polskie zgrupowanie pod Brwinowem. Kierunek schematycznie.",
+        "sources": [
+          "S08",
+          "S09"
+        ],
+        "from": "1939-09-12",
+        "to": "1939-09-12",
+        "coords": [
+          [
+            52.148325,
+            20.786386
+          ],
+          [
+            52.140348,
+            20.717751
+          ]
+        ]
+      },
+      {
+        "id": "ww2-ak-ochota",
+        "type": "atak",
+        "side": "AK",
+        "color": "#B3261E",
+        "label": "AK Ochota · 2 VIII 1944",
+        "title": "Oddziały AK IV obwodu wycofujące się z Ochoty: bój na drodze z Reguł do Pęcic",
+        "date": "2 VIII 1944",
+        "desc": "Według Muzeum Dulag 121: 31 poległych, 67 wziętych do niewoli, 60 rozstrzelanych w pęcickiej cegielni.",
+        "sources": [
+          "S20"
+        ],
+        "from": "1944-08-02",
+        "to": "1944-08-02",
+        "coords": [
+          [
+            52.176533,
+            20.865237
+          ],
+          [
+            52.156153,
+            20.84784
+          ]
+        ]
+      },
+      {
+        "id": "ww2-vi-rejon",
+        "type": "transport",
+        "side": "AK",
+        "color": "#B3261E",
+        "label": "VI Rejon AK do Lasów Sękocińskich · 1–3 VIII",
+        "title": "Żołnierze VI Rejonu „Helenów” AK ruszają do Lasów Sękocińskich",
+        "date": "1–3 VIII 1944",
+        "desc": "W oczekiwaniu na zrzuty; 3 VIII komendant „Paweł” nakazał powrót do konspiracji. Kierunek schematycznie.",
+        "sources": [
+          "S04"
+        ],
+        "from": "1944-08-01",
+        "to": "1944-08-03",
+        "context": true,
+        "coords": [
+          [
+            52.171959,
+            20.802982
+          ],
+          [
+            52.101223,
+            20.891504
+          ]
+        ]
+      },
+      {
+        "id": "ww2-wypedzeni-wola",
+        "type": "transport",
+        "side": "Ludność",
+        "label": "wypędzeni z Woli · od 7 VIII 1944",
+        "title": "Wypędzeni z Warszawy do Dulagu 121: pierwsza piesza grupa z Woli",
+        "date": "7 VIII 1944",
+        "desc": "Pieszo dotarła pierwsza grupa ok. 3 tys. kobiet i dzieci ocalałych z Rzezi Woli. Kierunek schematycznie.",
+        "sources": [
+          "S01"
+        ],
+        "from": "1944-08-07",
+        "to": "1944-10-31",
+        "context": true,
+        "coords": [
+          [
+            52.236237,
+            20.954781
+          ],
+          [
+            52.175621,
+            20.815648
+          ]
+        ]
+      },
+      {
+        "id": "ww2-transporty",
+        "type": "deportacja",
+        "side": "Niemcy",
+        "label": "transporty z obozu · VIII 1944 – I 1945",
+        "title": "Transporty z Dulagu 121: do GG, na roboty do Rzeszy i do obozów koncentracyjnych",
+        "date": "VIII 1944 – I 1945",
+        "desc": "Pierwsze trzy transporty niezdolnych do pracy do powiatu łowickiego (10, 12, 13 VIII). Do KL ok. 60 tys. osób (Auschwitz ok. 13,5 tys., Stutthof ok. 4,5 tys.). Strzałka schematycznie na zachód wzdłuż linii kolejowej.",
+        "sources": [
+          "S24",
+          "S25"
+        ],
+        "from": "1944-08-10",
+        "to": "1945-01-17",
+        "context": true,
+        "coords": [
+          [
+            52.176799,
+            20.824417
+          ],
+          [
+            52.106622,
+            20.631344
+          ]
+        ]
+      }
+    ],
+    "areas": [
+      {
+        "id": "ww2-teren-dulag",
+        "title": "Teren obozu Dulag 121 (dawne Warsztaty Kolejowe)",
+        "label": "teren obozu Dulag 121",
+        "desc": "Obrys dzisiejszego terenu MLP Pruszków I (ok. 42 ha) według OpenStreetMap. Obóz zajmował 48–53 ha — granice orientacyjne.",
+        "color": "#4A1F1F",
+        "sources": [
+          "S01",
+          "S17"
+        ],
+        "from": "1944-08-06",
+        "to": "1945-01-17",
+        "coords": [
+          [
+            52.172986,
+            20.807588
+          ],
+          [
+            52.17282,
+            20.807897
+          ],
+          [
+            52.173141,
+            20.808405
+          ],
+          [
+            52.17267,
+            20.808758
+          ],
+          [
+            52.172388,
+            20.808358
+          ],
+          [
+            52.172036,
+            20.809046
+          ],
+          [
+            52.172124,
+            20.80923
+          ],
+          [
+            52.172097,
+            20.809339
+          ],
+          [
+            52.171953,
+            20.809466
+          ],
+          [
+            52.172781,
+            20.811948
+          ],
+          [
+            52.172722,
+            20.811998
+          ],
+          [
+            52.176799,
+            20.824417
+          ],
+          [
+            52.176949,
+            20.824336
+          ],
+          [
+            52.176844,
+            20.823046
+          ],
+          [
+            52.177594,
+            20.822898
+          ],
+          [
+            52.178,
+            20.824233
+          ],
+          [
+            52.178018,
+            20.824703
+          ],
+          [
+            52.177956,
+            20.825267
+          ],
+          [
+            52.178005,
+            20.825232
+          ],
+          [
+            52.178035,
+            20.824972
+          ],
+          [
+            52.178108,
+            20.824964
+          ],
+          [
+            52.17846,
+            20.822232
+          ],
+          [
+            52.178444,
+            20.822043
+          ],
+          [
+            52.178658,
+            20.820732
+          ],
+          [
+            52.178527,
+            20.820348
+          ],
+          [
+            52.178585,
+            20.8194
+          ],
+          [
+            52.178489,
+            20.81939
+          ],
+          [
+            52.178049,
+            20.81753
+          ],
+          [
+            52.17864,
+            20.816958
+          ],
+          [
+            52.175893,
+            20.808602
+          ],
+          [
+            52.175406,
+            20.80909
+          ],
+          [
+            52.175304,
+            20.809065
+          ],
+          [
+            52.173909,
+            20.808175
+          ],
+          [
+            52.17363,
+            20.807886
+          ],
+          [
+            52.173344,
+            20.808173
+          ],
+          [
+            52.172986,
+            20.807588
+          ]
+        ]
+      }
+    ],
+    "chronicle": [
+      {
+        "sort": "1939-09-01",
+        "date": "1 IX 1939",
+        "text": "Nalot uszkadza trzy domy przy torach w Pruszkowie.",
+        "scale": "Lokalna",
+        "sources": [
+          "S11"
+        ]
+      },
+      {
+        "sort": "1939-09-06",
+        "date": "6 IX 1939",
+        "text": "Z Pruszkowa ewakuowano urzędy, pocztę i policję.",
+        "scale": "Lokalna",
+        "sources": [
+          "S11"
+        ]
+      },
+      {
+        "sort": "1939-09-08",
+        "date": "8 IX 1939",
+        "text": "Niemcy docierają do Warszawy.",
+        "scale": "Kontekst",
+        "sources": [
+          "S09"
+        ]
+      },
+      {
+        "sort": "1939-09-12",
+        "date": "12 IX 1939",
+        "text": "Bitwa pod Brwinowem (28 DP, 36 pp Legii Akademickiej). Czołgi 4 DPanc. skoncentrowane w Pruszkowie uderzają od strony Helenowa. W Parzniewie Niemcy rozstrzeliwują ok. 100 polskich jeńców.",
+        "scale": "Lokalna",
+        "sources": [
+          "S08",
+          "S09",
+          "S10"
+        ]
+      },
+      {
+        "sort": "1939-09-13",
+        "date": "13 IX 1939",
+        "text": "Niemcy wkraczają do Brwinowa.",
+        "scale": "Kontekst",
+        "sources": [
+          "S08"
+        ]
+      },
+      {
+        "sort": "1939-12-14",
+        "date": "14 XII 1939",
+        "text": "Palmiry: Niemcy rozstrzeliwują 46 mieszkańców Pruszkowa.",
+        "scale": "Lokalna",
+        "sources": [
+          "S18"
+        ]
+      },
+      {
+        "sort": "1940-11-15",
+        "date": "ok. 15 XI 1940",
+        "text": "Utworzenie getta w Pruszkowie w kwartale ulic Pęcickiej, Komorowskiej, Ceramicznej i Polnej. 1331 osób w 29 domach. Żydzi ze Żbikowa trafili tam po utracie domów.",
+        "scale": "Lokalna",
+        "sources": [
+          "S05",
+          "S03"
+        ]
+      },
+      {
+        "sort": "1941-02-01",
+        "date": "początek II 1941",
+        "text": "Niemal wszystkich mieszkańców getta deportowano do getta warszawskiego.",
+        "scale": "Lokalna",
+        "sources": [
+          "S05"
+        ]
+      },
+      {
+        "sort": "1944-07-25",
+        "date": "koniec VII 1944",
+        "text": "Niemcy ewakuują maszyny z warsztatów kolejowych na Żbikowie.",
+        "scale": "Lokalna",
+        "sources": [
+          "S01"
+        ]
+      },
+      {
+        "sort": "1944-08-01",
+        "date": "1 VIII 1944",
+        "text": "Wybuch Powstania. Żołnierze VI Rejonu „Helenów” AK podejmują akcje, część ostrzelana w drodze na zbiórkę.",
+        "scale": "Lokalna",
+        "sources": [
+          "S04"
+        ]
+      },
+      {
+        "sort": "1944-08-02",
+        "date": "2 VIII 1944",
+        "text": "Egzekucja na żwirowni (ul. Lipowa / Żwirowa): 27–34 mężczyzn. Tego dnia bój pod Pęcicami (AK Ochota, 31 poległych, 67 w niewoli, 60 rozstrzelanych).",
+        "scale": "Lokalna",
+        "sources": [
+          "S04",
+          "S20"
+        ]
+      },
+      {
+        "sort": "1944-08-03",
+        "date": "3 VIII 1944",
+        "text": "Komendant „Paweł” nakazuje VI Rejonowi powrót do konspiracji.",
+        "scale": "Lokalna",
+        "sources": [
+          "S04"
+        ]
+      },
+      {
+        "sort": "1944-08-06",
+        "date": "6 VIII 1944",
+        "text": "Utworzenie Dulagu 121. Komisarz miasta Walter Bock zleca RGO pomoc. Wieczorem apele ks. Tyszki i ks. Dyżewskiego w pruszkowskich kościołach o żywność, naczynia i ochotników.",
+        "scale": "Lokalna",
+        "sources": [
+          "S01",
+          "S02"
+        ]
+      },
+      {
+        "sort": "1944-08-07",
+        "date": "7 VIII 1944",
+        "text": "Pieszo dociera pierwsza grupa ok. 3 tys. kobiet i dzieci ocalałych z Rzezi Woli.",
+        "scale": "Lokalna",
+        "sources": [
+          "S01"
+        ]
+      },
+      {
+        "sort": "1944-08-10",
+        "date": "10, 12 i 13 VIII 1944",
+        "text": "Pierwsze trzy transporty osób niezdolnych do pracy ruszają do powiatu łowickiego.",
+        "scale": "Lokalna",
+        "sources": [
+          "S24"
+        ]
+      },
+      {
+        "sort": "1944-08-11",
+        "date": "11 VIII 1944",
+        "text": "Kierownictwo obozu przejmuje Wehrmacht (płk Kurt Sieber). Zakaz bicia i używania broni krótkiej. W hali 2 zaczyna działać komisja lekarska.",
+        "scale": "Lokalna",
+        "sources": [
+          "S01"
+        ]
+      },
+      {
+        "sort": "1944-08-15",
+        "date": "ok. 15 VIII 1944",
+        "text": "Łączniczki VI Rejonu „Helenów” przenoszą meldunek o sytuacji w obozie do powstańczej Warszawy. 25 VIII apel do MCK nadany przez radiostację powstańczą.",
+        "scale": "Lokalna",
+        "sources": [
+          "S01"
+        ]
+      },
+      {
+        "sort": "1944-08-25",
+        "date": "25 VIII, 31 VIII i 29 IX 1944",
+        "text": "Trzy transporty z Dulagu do KL Stutthof (pierwszy 25 VIII). Do KL Auschwitz wywieziono ok. 13,5 tys. osób.",
+        "scale": "Lokalna",
+        "sources": [
+          "S25",
+          "S24"
+        ]
+      },
+      {
+        "sort": "1944-09-01",
+        "date": "pierwsze dni IX 1944",
+        "text": "Szczyt pierwszej fali: w obozie do 75 tys. osób.",
+        "scale": "Lokalna",
+        "sources": [
+          "S01"
+        ]
+      },
+      {
+        "sort": "1944-09-05",
+        "date": "5 IX 1944",
+        "text": "Inspekcja gen. von dem Bacha-Zelewskiego (propagandowa).",
+        "scale": "Lokalna",
+        "sources": [
+          "S01"
+        ]
+      },
+      {
+        "sort": "1944-09-17",
+        "date": "17–18 IX 1944",
+        "text": "Wizytacja przedstawiciela Międzynarodowego Czerwonego Krzyża dr. Paula Wyssa.",
+        "scale": "Lokalna",
+        "sources": [
+          "S01"
+        ]
+      },
+      {
+        "sort": "1944-09-28",
+        "date": "koniec IX 1944",
+        "text": "Do hali 7 trafia ok. 1200 powstańców z Mokotowa, potem z Żoliborza. Hala 8: szpital dla powstańców.",
+        "scale": "Lokalna",
+        "sources": [
+          "S01"
+        ]
+      },
+      {
+        "sort": "1944-10-01",
+        "date": "początek X 1944",
+        "text": "Druga fala: w niecałe dwa tygodnie ok. 170 tys. osób. Uruchomiono filie w Ursusie i Piastowie.",
+        "scale": "Lokalna",
+        "sources": [
+          "S01"
+        ]
+      },
+      {
+        "sort": "1944-11-01",
+        "date": "XI 1944 – I 1945",
+        "text": "W hali 13 zakwaterowane Arbeitskommando rabujące Warszawę.",
+        "scale": "Lokalna",
+        "sources": [
+          "S01"
+        ]
+      },
+      {
+        "sort": "1945-01-14",
+        "date": "14–17 I 1945",
+        "text": "Operacja warszawska: 47 i 61 Armia uderzają w kierunku Błonia, oskrzydlając stolicę i 9 Armię niemiecką. Do 17 I Niemcy opuszczają lewobrzeżną Warszawę i Pruszków.",
+        "scale": "Kontekst",
+        "sources": [
+          "S26",
+          "S11"
+        ]
+      },
+      {
+        "sort": "1945-01-16",
+        "date": "16/17 I 1945",
+        "text": "Niemcy ewakuują załogę obozu, Dulag przestaje istnieć. 17 I Pruszków opuszczony przez okupanta, rusza Miejska Rada Narodowa.",
+        "scale": "Lokalna",
+        "sources": [
+          "S01",
+          "S11"
+        ]
+      },
+      {
+        "sort": "1945-04-01",
+        "date": "wiosna 1945",
+        "text": "Ekshumacje ofiar niemieckich w Pruszkowie.",
+        "scale": "Lokalna",
+        "sources": [
+          "S06"
+        ]
+      },
+      {
+        "sort": "1947-01-01",
+        "date": "1947",
+        "text": "Odsłonięcie pierwszej tablicy pamiątkowej o obozie (miejsce nieustalone).",
+        "scale": "Lokalna",
+        "sources": [
+          "S27"
+        ]
+      }
     ]
   }
 };
