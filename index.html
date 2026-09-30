@@ -339,6 +339,26 @@
   .war-label{font-family:'Special Elite','Courier New',monospace;font-size:12px;white-space:nowrap;color:var(--lc);text-shadow:0 0 3px #F4EAD0,0 0 3px #F4EAD0,0 0 6px #F4EAD0;letter-spacing:.3px;pointer-events:none;transform-origin:center}
   .war-label span{display:inline-block}
   .war-chip{display:none}
+  /* Time scrubber (war modes): a slider that snaps to dates / periods */
+  .war-time{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:14px;width:min(560px,calc(100% - 24px))}
+  .war-time[hidden]{display:none}
+  .war-time .wt-mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .war-time .wt-label{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:700;color:var(--text);white-space:nowrap}
+  .war-time .wt-label b{color:var(--accent);overflow:hidden;text-overflow:ellipsis}
+  .war-time .wt-label small{color:var(--muted);font-weight:600}
+  .war-time .wt-track{position:relative;height:26px}
+  .war-time input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:none;-webkit-appearance:none;appearance:none;height:26px;z-index:2;cursor:pointer}
+  .war-time input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:4px;background:var(--border-strong)}
+  .war-time input[type=range]::-moz-range-track{height:4px;border-radius:4px;background:var(--border-strong)}
+  .war-time input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;margin-top:-8px;border-radius:50%;background:var(--accent);border:3px solid var(--panel);box-shadow:0 1px 4px rgba(0,0,0,0.5)}
+  .war-time input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);border:3px solid var(--panel);box-shadow:0 1px 4px rgba(0,0,0,0.5)}
+  .war-time input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+  .war-time .wt-ticks{position:absolute;left:10px;right:10px;top:17px;height:8px;pointer-events:none}
+  .war-time .wt-ticks i{position:absolute;top:0;width:2px;height:6px;margin-left:-1px;border-radius:1px;background:var(--muted);opacity:.7}
+  .war-time .wt-ticks i.all{background:var(--accent);opacity:1}
+  .war-time .wt-ticks i.on{background:var(--accent);opacity:1;height:8px}
+  .war-time .icon-btn{width:34px;height:34px;flex-shrink:0;font-size:20px;line-height:1}
+  .war-time .icon-btn[disabled]{opacity:.3}
   .seg-btn .sh{display:none}
   .intro-more{display:none}
   @media (max-width: 860px){
@@ -497,6 +517,19 @@
   #lightbox .lb-cap a{color:var(--muted)}
   .actions{padding-left:18px;padding-right:18px}
   }
+  /* Phones held sideways: sheets go to the side so the map keeps its height */
+  @media (max-width: 860px) and (orientation: landscape) and (max-height: 520px){
+    .sheet, body.war-on #war-sheet, body.war-on #panel, .sheet.expanded, body.war-on #war-sheet.expanded, body.war-on #panel.expanded{top:0;bottom:0;left:auto;right:0;width:min(400px,52vw);height:auto;border-top:none;border-left:1px solid var(--border-strong);border-radius:0}
+    .sheet{transform:translateX(100%)}
+    .sheet.open{transform:translateX(0)}
+    .grabber{display:none}
+    body.panel-open .bottom-bar{right:min(400px,52vw);opacity:1;pointer-events:none}
+    body.panel-open .bottom-bar > *{pointer-events:auto}
+    .war-chip .key{display:none}
+    .seg-btn .lg{display:none}
+    .seg-btn .sh{display:inline}
+    .bottom-bar{gap:6px;bottom:calc(8px + env(safe-area-inset-bottom))}
+  }
   @media (max-width: 480px){
     .brand-text{display:none}
     .stats{grid-template-columns:1fr 1fr 1fr}
@@ -574,6 +607,17 @@
     </div>
 
     <div class="bottom-bar map-ui">
+      <div class="war-time glass" id="war-time" hidden role="group" aria-label="Oś czasu na mapie">
+        <button class="icon-btn" id="wt-prev" aria-label="Wcześniej">‹</button>
+        <div class="wt-mid">
+          <div class="wt-label"><b id="wt-cur">cały okres</b><small id="wt-n"></small></div>
+          <div class="wt-track">
+            <input type="range" id="wt-range" min="0" max="1" step="1" value="0" aria-label="Wybierz datę lub okres">
+            <div class="wt-ticks" id="wt-ticks" aria-hidden="true"></div>
+          </div>
+        </div>
+        <button class="icon-btn" id="wt-next" aria-label="Później">›</button>
+      </div>
       <div class="seg pill glass" role="toolbar" aria-label="Warstwy i widoki">
         <button class="seg-btn" data-layer="wspolczesna" aria-pressed="true"><span class="lg">WSPÓŁCZESNA</span><span class="sh">DZIŚ</span></button>
         <button class="seg-btn" data-layer="ww1" aria-pressed="false" title="I wojna światowa (1914–1918)"><span class="lg">I WOJNA</span><span class="sh">I WŚ</span></button>
@@ -719,6 +763,8 @@
   // Data lives in data/*.js (see the header of each file for its schema).
 
   var mobileMQ = window.matchMedia('(max-width: 860px)');
+  var landMQ = window.matchMedia('(max-width: 860px) and (orientation: landscape) and (max-height: 520px)');
+  function bottomSheets(){ return mobileMQ.matches && !landMQ.matches; }
   function $(id){ return document.getElementById(id); }
 
   function esc(s){
@@ -945,7 +991,7 @@
   // Map centre that keeps a point visible next to the side panel / above the bottom sheet.
   function offsetCenter(ll, z){
     var pt = map.project(ll, z);
-    pt = mobileMQ.matches ? pt.add([0, panel.offsetHeight / 2 - 20]) : pt.add([panel.offsetWidth / 2, 0]);
+    pt = bottomSheets() ? pt.add([0, panel.offsetHeight / 2 - 20]) : pt.add([panel.offsetWidth / 2, 0]);
     return map.unproject(pt, z);
   }
   // Bring a record's marker into view; if it shares an address, fan the group out.
@@ -1524,7 +1570,7 @@
   }
   function fitRoute(r){
     var b = L.latLngBounds(r.geometry);
-    var pad = mobileMQ.matches ? { paddingTopLeft: [30, 30], paddingBottomRight: [30, routesSheet.offsetHeight + 30] }
+    var pad = bottomSheets() ? { paddingTopLeft: [30, 30], paddingBottomRight: [30, routesSheet.offsetHeight + 30] }
                                : { paddingTopLeft: [50, 50], paddingBottomRight: [routesSheet.offsetWidth + 50, 90] };
     map.fitBounds(b, pad);
   }
@@ -1888,8 +1934,9 @@
     if (!s.bounds.length) return;
     var open = [warSheet, panel].filter(function(x){ return x.classList.contains('open'); })[0];
     var top = mobileMQ.matches ? (($('war-chip').offsetHeight || 0) + 80) : 80;
-    var pad = mobileMQ.matches ? { paddingTopLeft: [30, top], paddingBottomRight: [30, (open ? open.offsetHeight : 70) + 30] }
-                               : { paddingTopLeft: [60, 80], paddingBottomRight: [(open ? open.offsetWidth : 0) + 60, 100] };
+    var bottom = ($('war-time').offsetHeight || 0) + 90;
+    var pad = bottomSheets() ? { paddingTopLeft: [30, top], paddingBottomRight: [30, (open ? open.offsetHeight + 30 : bottom)] }
+                             : { paddingTopLeft: [mobileMQ.matches ? 20 : 60, mobileMQ.matches ? top - 40 : 80], paddingBottomRight: [(open ? open.offsetWidth : 0) + (mobileMQ.matches ? 20 : 60), bottom] };
     map.fitBounds(L.latLngBounds(s.bounds), pad);
   }
   function warPoints(s){
@@ -1912,6 +1959,79 @@
         .map(function(k){ return '<span><i style="border-color:' + k.color + '"></i>' + esc(k.label) + '</span>'; }).join('') + '</span>';
   }
   $('war-chip').addEventListener('click', function(){ openWarSheet(); });
+
+  // Stops of the time scrubber: "whole period", then each day with events (WW1) or each period (WW2).
+  function warStops(s){
+    if (s.stops) return s.stops;
+    var war = s.war, stops = [null];
+    if (war.phases) war.phases.forEach(function(ph, i){ stops.push({ from: ph.from, to: ph.to, label: ph.label, i: i }); });
+    else if (war.days){
+      var chron = {};
+      (war.chronicle || []).forEach(function(c){ chron[c.sort] = 1; });
+      dayList(war.days).forEach(function(d){ if (chron[d] || s.events.some(function(e){ return activeOn(e, d); })) stops.push(d); });
+    }
+    return (s.stops = stops);
+  }
+  function stopIndex(s){
+    var st = warStops(s), d = s.day;
+    for (var i = 1; i < st.length; i++){
+      if (typeof d === 'string' ? st[i] === d : (d && st[i] && st[i].i === d.i)) return i;
+    }
+    return 0;
+  }
+  function stopLabel(st){
+    if (!st) return 'cały okres';
+    if (typeof st !== 'string') return st.label;
+    var lb = dayLabel(st); return lb.d + ' ' + lb.m + ' ' + st.slice(0, 4);
+  }
+  function syncWarTime(){
+    var box = $('war-time');
+    box.hidden = mode === 'modern';
+    if (mode === 'modern') return;
+    var s = warState[mode], st = warStops(s), i = stopIndex(s), r = $('wt-range');
+    if (st.length < 2){ box.hidden = true; return; }
+    r.max = st.length - 1; r.value = i;
+    r.setAttribute('aria-valuetext', stopLabel(st[i]));
+    $('wt-cur').textContent = stopLabel(st[i]);
+    $('wt-n').textContent = s.events.filter(function(e){ return e.ll && activeOn(e, s.day) && s.filter[e.ev.type] !== false; }).length + ' na mapie · ' + i + '/' + (st.length - 1);
+    $('wt-prev').disabled = i === 0;
+    $('wt-next').disabled = i === st.length - 1;
+    var ticks = $('wt-ticks');
+    if (ticks.dataset.war !== mode){
+      ticks.dataset.war = mode;
+      ticks.innerHTML = st.map(function(x, k){ return '<i style="left:' + (k / (st.length - 1) * 100) + '%"' + (k === 0 ? ' class="all"' : '') + '></i>'; }).join('');
+    }
+    [].forEach.call(ticks.children, function(t, k){ t.classList.toggle('on', k === i && k > 0); });
+  }
+  // One place that changes the selected day / period: map, sheet, chip and scrubber stay in sync.
+  var fitTimer;
+  function setWarDay(s, day, fitNow){
+    s.day = day;
+    applyWarFilter(s);
+    if (warSheet.classList.contains('open')){
+      var y = warBody.scrollTop;
+      renderWarSheet(s);
+      warBody.scrollTop = y;
+      var sel = warBody.querySelector('.days button[aria-pressed="true"]');
+      if (sel){ var strip = sel.parentNode; strip.scrollLeft = sel.offsetLeft - strip.offsetLeft - strip.clientWidth / 2 + sel.offsetWidth / 2; }
+    }
+    syncWarChip();
+    syncWarTime();
+    clearTimeout(fitTimer);
+    fitTimer = setTimeout(function(){ var pts = warPoints(s); if (pts.length) fitWar({ bounds: pts }); }, fitNow ? 0 : 350);
+  }
+  function stepWar(delta){
+    if (mode === 'modern') return;
+    var s = warState[mode], st = warStops(s), i = Math.max(0, Math.min(st.length - 1, stopIndex(s) + delta));
+    setWarDay(s, st[i], true);
+  }
+  $('wt-range').addEventListener('input', function(){
+    if (mode === 'modern') return;
+    var s = warState[mode];
+    setWarDay(s, warStops(s)[parseInt(this.value, 10)] || null);
+  });
+  $('wt-prev').addEventListener('click', function(){ stepWar(-1); });
+  $('wt-next').addEventListener('click', function(){ stepWar(1); });
   function setMode(m, quiet){
     if (m !== 'modern' && !WARS[m]) m = 'modern';
     if (m === mode){ if (m !== 'modern' && !quiet) openWarSheet(); return; }
@@ -1942,6 +2062,7 @@
       if (leavingWar && !quiet && current && current.kind === 'event'){ panel.classList.remove('open'); current = null; }
       syncBodyState();
       syncWarChip();
+      syncWarTime();
       setHash('');
       return;
     }
@@ -1953,6 +2074,7 @@
     s.layer.addTo(map);
     hatchAreas(s);
     syncWarChip();
+    syncWarTime();
     if (current && current.kind !== 'event'){ panel.classList.remove('open'); current = null; }
     if (!quiet){ openWarSheet(); setTimeout(function(){ fitWar(s); }, 60); }
     else syncBodyState();
@@ -2053,17 +2175,12 @@
     if (!s) return;
     var db = e.target.closest('[data-day],[data-phase]');
     if (db){
+      var day;
       if (db.hasAttribute('data-phase')){
         var ph = db.dataset.phase === '' ? null : s.war.phases[parseInt(db.dataset.phase, 10)];
-        s.day = ph ? { from: ph.from, to: ph.to, label: ph.label, i: parseInt(db.dataset.phase, 10) } : null;
-      } else s.day = db.dataset.day || null;
-      applyWarFilter(s);
-      renderWarSheet(s);
-      var sel = warBody.querySelector('.days button[aria-pressed="true"]');
-      if (sel){ var strip = sel.parentNode; strip.scrollLeft = sel.offsetLeft - strip.offsetLeft - strip.clientWidth / 2 + sel.offsetWidth / 2; }
-      syncWarChip();
-      var pts = warPoints(s);
-      if (pts.length) fitWar({ bounds: pts });
+        day = ph ? { from: ph.from, to: ph.to, label: ph.label, i: parseInt(db.dataset.phase, 10) } : null;
+      } else day = db.dataset.day || null;
+      setWarDay(s, day, true);
       return;
     }
     var tb = e.target.closest('[data-wtype]');
@@ -2073,6 +2190,7 @@
       applyWarFilter(s);
       renderWarSheet(s);
       syncWarChip();
+      syncWarTime();
       return;
     }
     var mb = e.target.closest('.intro-more');
@@ -2122,7 +2240,7 @@
     setHash('', e.ev.id);
     var mk = s.markers[e.ev.id] || null;
     // Opening an event outside the selected day/period clears that filter so the event is visible.
-    if (s.day && !activeOn(e, s.day)){ s.day = null; applyWarFilter(s); syncWarChip(); }
+    if (s.day && !activeOn(e, s.day)){ s.day = null; applyWarFilter(s); syncWarChip(); syncWarTime(); }
     setActiveWar(mk);
     if (mk){
       if (s.filter[e.ev.type] === false){ s.filter[e.ev.type] = true; applyWarFilter(s); }
