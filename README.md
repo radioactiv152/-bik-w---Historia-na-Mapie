@@ -26,6 +26,19 @@ python3 -m http.server 8000
 
 Wymagany dostęp do internetu (Leaflet i czcionki ładowane z CDN, kafelki map z zewnętrznych serwerów).
 
+## Dane
+
+Wszystkie dane są w folderze `data/` jako zwykłe pliki JavaScript. Można je edytować ręcznie, bez zmian w `index.html`;
+na początku każdego pliku jest opis pól.
+
+| Plik | Zawartość |
+|---|---|
+| `data/places.js` | miejsca z bazy (z adresem i bez dokładnej lokalizacji) |
+| `data/photos.js` | zdjęcia archiwalne przypisane do miejsc (tylko domena publiczna, sprzed 1990 r.) |
+| `data/routes.js` | trasy spacerowe |
+| `data/wars.js` | warstwy „I wojna światowa” i „II wojna światowa”: wydarzenia, typy, linie frontu i kierunki ataków |
+| `data/artifacts.js` | „ARTEFAKTY” i „CO TU PRODUKOWANO” dla miejsc, z dowolną liczbą pozycji i zdjęć |
+
 ## Trasy spacerowe
 
 Pięć tras tematycznych (dane `ROUTES` w `index.html`). Przebieg po ulicach został wyznaczony raz
