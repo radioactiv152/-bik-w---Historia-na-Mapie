@@ -3,6 +3,8 @@
 Interaktywna mapa historii Żbikowa (Leaflet + OpenStreetMap / ortofotomapa / mapa archiwalna).
 Cała aplikacja to jeden statyczny plik `index.html` — nie wymaga budowania ani serwera.
 
+> **Wersja demonstracyjna.** © Tomasz Wrotek. Wszelkie prawa zastrzeżone.
+
 ## Uruchomienie z GitHuba (GitHub Pages)
 
 Strona jest publikowana automatycznie przez workflow `.github/workflows/pages.yml`
@@ -79,3 +81,9 @@ z żadnej usługi routingu w czasie działania.
 Folder `img/` zawiera wyłącznie historyczne fotografie (sprzed 1990 r.) w domenie publicznej,
 pobrane z Wikimedia Commons (`img/t/` to miniatury). Autor, data, źródło i podstawa prawna
 każdego zdjęcia są zapisane w danych `PHOTOS` w `index.html` i wyświetlane pod zdjęciem.
+
+## Prawa autorskie
+
+© Tomasz Wrotek. Wszelkie prawa zastrzeżone. Projekt jest wersją demonstracyjną.
+Dane i materiały stron trzecich (OpenStreetMap — ODbL, rozkłady GTFS, fotografie z Wikimedia Commons w domenie
+publicznej) pozostają na swoich licencjach.

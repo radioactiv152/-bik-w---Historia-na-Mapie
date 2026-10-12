@@ -6,6 +6,8 @@
 <title>Żbików — Historia na mapie</title>
 <meta name="description" content="Interaktywna mapa historii Żbikowa (Pruszków): kościoły, wille, miejsca pamięci i konspiracji, z warstwą zdjęcia lotniczego z 1944 r.">
 <meta name="theme-color" content="#0F2C44">
+<meta name="author" content="Tomasz Wrotek">
+<meta name="copyright" content="© Tomasz Wrotek. Wszelkie prawa zastrzeżone.">
 <meta property="og:title" content="Żbików — Historia na mapie">
 <meta property="og:description" content="Interaktywna mapa historii Żbikowa z warstwą zdjęcia lotniczego z 1944 r.">
 <meta property="og:type" content="website">
@@ -527,6 +529,8 @@
   .legend li{display:flex;align-items:center;gap:12px;font-size:13.5px}
   .legend .sw{width:40px;display:flex;justify-content:center;flex-shrink:0}
   .legend .marker-group,.legend .cluster{transform:scale(.85)}
+  .demo-note{margin:0 0 14px;padding:10px 12px;border:1px solid var(--border-strong);border-radius:12px;background:var(--faint);font-size:13px}
+  .dlg-body .copyright{margin:18px 0 0;padding-top:12px;border-top:1px solid var(--border);font-size:12.5px;color:var(--muted)}
 
   #toast{position:absolute;left:50%;top:16px;transform:translateX(-50%) translateY(-20px);opacity:0;pointer-events:none;transition:.2s ease;background:var(--panel);border:1px solid var(--border-strong);border-radius:12px;padding:11px 16px;font-size:13px;max-width:min(440px,calc(100% - 32px));text-align:center;box-shadow:var(--shadow);z-index:1300}
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -601,7 +605,7 @@
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--accent)" stroke-width="1.6" aria-hidden="true"><path d="M12 21s7-6.1 7-11.5A7 7 0 0 0 5 9.5C5 14.9 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.4"/></svg>
       <span class="brand-text">
         <span class="display name">ŻBIKÓW</span>
-        <span class="tag">Historia na mapie</span>
+        <span class="tag">Historia na mapie · wersja demo</span>
       </span>
     </button>
     <div class="search-wrap" role="search">
@@ -773,6 +777,7 @@
     <button class="icon-btn" id="close-info" aria-label="Zamknij"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
   </div>
   <div class="dlg-body">
+    <p class="demo-note"><b>Wersja demonstracyjna.</b> Treści i funkcje mogą być niekompletne i będą jeszcze zmieniane.</p>
     <p>Mapa zebranych informacji o historii Żbikowa: kościoły, wille, zakłady, szkoły, miejsca pamięci i konspiracji. Kliknij punkt na mapie, wyszukaj obiekt albo przejrzyj listę <b>Miejsca</b>.</p>
     <div class="stats" id="stats"></div>
     <h4>Legenda</h4>
@@ -798,6 +803,7 @@
     <p>Obiekty bez dokładnego adresu (lokalizacja opisowa lub obszarowa) są w wyszukiwarce i na liście, ale nie mają punktu na mapie — żeby mapa nie sugerowała większej pewności niż dają źródła.</p>
     <h4>Skróty</h4>
     <p><kbd>/</kbd> wyszukiwanie · <kbd>↑</kbd><kbd>↓</kbd> <kbd>Enter</kbd> wybór wyniku · <kbd>Esc</kbd> zamknij</p>
+    <p class="copyright">© Tomasz Wrotek. Wszelkie prawa zastrzeżone. Wersja demonstracyjna.<br>Dane map, fotografie i dane otwarte pozostają na licencjach podanych przy nich (OpenStreetMap — ODbL, zdjęcia — domena publiczna).</p>
   </div>
 </dialog>
 
@@ -874,6 +880,7 @@
 
   // --- Map setup ---
   var map = L.map('map', { zoomControl: false, attributionControl: true });
+  map.attributionControl.addAttribution('Wersja demonstracyjna · &copy; Tomasz Wrotek, wszelkie prawa zastrzeżone');
   var mapEl = $('map');
   var osmAttr = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
   var MAP_STYLES = {
