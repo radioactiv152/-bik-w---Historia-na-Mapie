@@ -296,6 +296,7 @@
   .days button{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:44px;border:1px solid var(--border-strong);background:var(--faint);color:var(--text);border-radius:10px;padding:6px 8px;font-weight:700;font-size:14px;line-height:1.1}
   .days button small{font-size:9.5px;font-weight:700;color:var(--muted);letter-spacing:.3px;text-transform:uppercase}
   .days button.has{border-color:rgba(var(--accent-rgb),0.6)}
+  .days button:disabled{opacity:.45;cursor:default}
   .days.phases button{font-size:12.5px;padding:7px 11px;white-space:nowrap}
   .days.phases button small{text-transform:none;letter-spacing:0;margin-top:2px}
   .days button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
@@ -622,7 +623,7 @@
   </header>
 
   <main>
-    <div id="map" aria-label="Mapa Żbikowa"></div>
+    <div id="map" role="region" aria-label="Mapa Żbikowa"></div>
     <div id="toast" role="status" aria-live="polite"></div>
     <div class="war-cartouche" id="war-cartouche" hidden></div>
     <svg class="compass" id="war-compass" hidden viewBox="0 0 100 100" aria-hidden="true">
@@ -635,7 +636,7 @@
 
     <div class="basemap-toggle">
       <div class="pill glass">
-        <button class="style-btn" id="style-btn" aria-haspopup="true" aria-expanded="false" aria-controls="style-menu">
+        <button class="style-btn" id="style-btn" aria-expanded="false" aria-controls="style-menu">
           <span class="sw" id="style-sw" aria-hidden="true"></span><span id="style-name">MAPA</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
         </button>
@@ -651,8 +652,8 @@
         <input type="range" id="opacity-slider" min="0" max="1" step="0.05" value="0.15" aria-label="Przenikanie zdjęcia z 1944 i mapy współczesnej">
         <span>dziś</span>
       </div>
-      <button class="war-chip" id="war-chip" hidden aria-label="Pokaż listę wydarzeń tej warstwy"></button>
-      <div class="style-menu glass" id="style-menu" role="menu">
+      <button class="war-chip" id="war-chip" hidden title="Pokaż listę wydarzeń tej warstwy"></button>
+      <div class="style-menu glass" id="style-menu" role="group" aria-label="Styl mapy i kolory strony">
         <div class="sm-label">Styl mapy</div>
         <div class="sm-grid" id="sm-maps"></div>
         <div class="sm-label">Kolory strony</div>
@@ -879,6 +880,14 @@
   var totalAll = totalMapped + UNMAPPED.length;
 
   // --- Map setup ---
+  // Keyboard-focusable divIcon markers are role=button with no name; `ariaLabel` gives them one
+  // (unlike `title`, it adds no native tooltip on top of the Leaflet one). Re-applied when setIcon rebuilds the icon.
+  var initMarkerIcon = L.Marker.prototype._initIcon;
+  L.Marker.prototype._initIcon = function(){
+    initMarkerIcon.call(this);
+    var label = this.options.ariaLabel || (this.getChildCount ? 'Skupisko punktów: ' + this.getChildCount() : '');   // getChildCount: a markercluster group
+    if (label && this._icon) this._icon.setAttribute('aria-label', label);
+  };
   var map = L.map('map', { zoomControl: false, attributionControl: true });
   map.attributionControl.addAttribution('Wersja demonstracyjna · &copy; Tomasz Wrotek, wszelkie prawa zastrzeżone');
   var mapEl = $('map');
@@ -935,10 +944,10 @@
   }
   // Satellite has its own toggle button, so the menu lists only the drawn map styles.
   $('sm-maps').innerHTML = Object.keys(MAP_STYLES).filter(function(k){ return k !== 'satelita'; }).map(function(k){
-    return '<button data-map="' + k + '" role="menuitemradio"><span class="sw" style="background:' + MAP_STYLES[k].swatch + '"></span>' + MAP_STYLES[k].name + '</button>';
+    return '<button data-map="' + k + '"><span class="sw" style="background:' + MAP_STYLES[k].swatch + '"></span>' + MAP_STYLES[k].name + '</button>';
   }).join('');
   $('sm-themes').innerHTML = Object.keys(THEMES).map(function(k){
-    return '<button data-theme="' + k + '" role="menuitemradio"><span class="sw" style="background:' + THEMES[k].swatch + '"></span>' + THEMES[k].name + '</button>';
+    return '<button data-theme="' + k + '"><span class="sw" style="background:' + THEMES[k].swatch + '"></span>' + THEMES[k].name + '</button>';
   }).join('');
   $('sat-btn').addEventListener('click', function(e){
     e.stopPropagation();
@@ -1032,7 +1041,7 @@
     recs.forEach(function(r){
       var hasPh = !!(PHOTOS[r.origId] && PHOTOS[r.origId].length);
       var hasFeat = !!(ARTIFACTS[r.origId] && ARTIFACTS[r.origId].length);
-      var marker = L.marker([p.lat, p.lng], { icon: pinIcon(hasPh, hasFeat, !!(r.approx || p.approx)), keyboard: true, title: '' });
+      var marker = L.marker([p.lat, p.lng], { icon: pinIcon(hasPh, hasFeat, !!(r.approx || p.approx)), keyboard: true, title: '', ariaLabel: r.name });
       marker.bindTooltip(esc(r.name) + (hasPh ? ' 📷' : '') + (hasFeat ? ' ⚙' : ''), { className: 'tt', direction: 'top', offset: [0, -12] });
       marker.on('click', function(){ openRecord(r.origId); });
       markerLayer.addLayer(marker);
@@ -1076,6 +1085,14 @@
     pt = bottomSheets() ? pt.add([0, panel.offsetHeight / 2 - 20]) : pt.add([panel.offsetWidth / 2, 0]);
     return map.unproject(pt, z);
   }
+  // Run fn once the current map move ends. A newer request replaces an older one: a flyTo cut short by
+  // another never fires its own moveend, so the old callback would otherwise act on the wrong marker.
+  var pendingMoveEnd = null;
+  function onMoveEnd(fn){
+    if (pendingMoveEnd) map.off('moveend', pendingMoveEnd);
+    pendingMoveEnd = fn ? function(){ pendingMoveEnd = null; fn(); } : null;   // onMoveEnd(null) just cancels
+    if (fn) map.once('moveend', pendingMoveEnd);
+  }
   // Bring a record's marker into view; if it shares an address, fan the group out.
   function revealMarker(orig, cb){ revealIn(markerLayer, markers[orig], cb); }
   function revealIn(layer, m, cb, minZ){
@@ -1090,8 +1107,8 @@
         parent.spiderfy();
       } else cb();
     }
-    if (m._icon && map.getZoom() >= minZ){ map.panTo(offsetCenter(m.getLatLng(), z)); cb(); return; }
-    map.once('moveend', spread);
+    if (m._icon && map.getZoom() >= minZ){ onMoveEnd(null); map.panTo(offsetCenter(m.getLatLng(), z)); cb(); return; }
+    onMoveEnd(spread);
     map.flyTo(offsetCenter(m.getLatLng(), z), z, { duration: 0.5 });
   }
 
@@ -1358,14 +1375,14 @@
     else if (on && current && current.place) revealMarker(current.item.origId, function(){});
   });
 
-  // --- Deep links: #o=<origId> (a record) or #p=<placeId> (an address) ---
+  // --- Deep links: #o=<origId> (a record), #p=<placeId> (an address), #s=<stopId> (a bus stop), #poi=<id> (Okolica) ---
   var hashLock = false;
-  function setHash(v, ev){
+  function setHash(v, ev, key){
     var parts = [];
     if (mode !== 'modern') parts.push('w=' + mode);
     if (ev) parts.push('e=' + ev);
     if (activeRoute) parts.push('t=' + activeRoute.id);
-    if (v !== '' && v != null) parts.push('o=' + v);
+    if (v !== '' && v != null) parts.push((key || 'o') + '=' + (key ? encodeURIComponent(v) : v));
     var h = parts.length ? '#' + parts.join('&') : '';
     if (location.hash === h) return;
     hashLock = true;
@@ -1384,6 +1401,13 @@
       startRoute(tm[1], !!om);
       if (om) openRecord(parseInt(om[1], 10));
       return true;
+    }
+    var sm = location.hash.match(/^#(s|poi)=(.+)$/);
+    if (sm){
+      var id = decodeURIComponent(sm[2]);
+      if (sm[1] === 's' && stopById[id]){ openBusStop(id); return true; }
+      if (sm[1] === 'poi' && poiById[id]){ openPoi(id); return true; }
+      return false;
     }
     var m = location.hash.match(/^#(o|p)=(.+)$/);
     if (!m) return false;
@@ -1426,6 +1450,7 @@
   function closeResults(){
     searchResults.classList.remove('open');
     searchInput.setAttribute('aria-expanded', 'false');
+    searchInput.removeAttribute('aria-activedescendant');
     kbIndex = -1;
   }
   function renderResults(){
@@ -1446,6 +1471,7 @@
     }).join('') : '<div class="search-empty">Brak wyników dla „' + esc(searchInput.value.trim()) + '”.</div>';
     searchResults.classList.add('open');
     searchInput.setAttribute('aria-expanded', 'true');
+    if (matches.length) searchInput.setAttribute('aria-activedescendant', 'sr-0'); else searchInput.removeAttribute('aria-activedescendant');
   }
   function moveKb(d){
     if (!matches.length) return;
@@ -1583,7 +1609,7 @@
     var r = recordByOrig[orig];
     return r && r.place ? L.latLng(r.place.lat, r.place.lng) : null;
   }
-  function stopLabel(r, i){
+  function routeStopName(r, i){
     var rec = recordByOrig[r.stops[i]];
     return rec ? rec.item.name : '';
   }
@@ -1649,10 +1675,10 @@
     groups.forEach(function(g){
       var label = g.from === g.to ? String(g.from + 1) : (g.from + 1) + '–' + (g.to + 1);
       var m = L.marker(g.ll, {
-        pane: 'routeStops',
+        pane: 'routeStops', ariaLabel: label + '. ' + routeStopName(r, g.from),
         icon: L.divIcon({ className: '', html: '<div class="stop-num" style="background:' + r.color + '">' + label + '</div>', iconSize: [30,30], iconAnchor: [15,15] })
       });
-      m.bindTooltip(esc(stopLabel(r, g.from)) + (g.to > g.from ? ' i in.' : ''), { className: 'tt', direction: 'top', offset: [0, -16] });
+      m.bindTooltip(esc(routeStopName(r, g.from)) + (g.to > g.from ? ' i in.' : ''), { className: 'tt', direction: 'top', offset: [0, -16] });
       m.on('click', function(){ openStop(g.from); });
       m.addTo(routeLayer);
     });
@@ -1924,7 +1950,7 @@
       lineLayer: L.layerGroup() };
     events.forEach(function(e, i){
       if (!e.ll) return;
-      var m = L.marker(e.ll, { icon: warPinIcon(e.ev.type, false, e.ev.side), keyboard: true, title: '' });
+      var m = L.marker(e.ll, { icon: warPinIcon(e.ev.type, false, e.ev.side), keyboard: true, title: '', ariaLabel: e.item.name });
       m.bindTooltip(esc(e.item.name) + (e.item.dating ? ' · ' + esc(e.item.dating) : '') + (e.ev.side ? ' · ' + esc(e.ev.side) : ''), { className: 'tt', direction: 'top', offset: [0, -14] });
       m.on('click', function(){ openEvent(key, i); });
       m.evType = e.ev.type;
@@ -2136,11 +2162,10 @@
     setPressed('ww2', m === 'ww2');
     mapEl.classList.toggle('war-mode', m !== 'modern');
     document.body.classList.toggle('war-on', m !== 'modern');
-    if (TRANSIT){
-      if (m !== 'modern'){ map.removeLayer(busLayer); busLineLayer.clearLayers(); busShown = {}; }
-      if (m !== 'modern' && POI){ map.removeLayer(poiLayer); nearSheet.classList.remove('open'); }
-      else if (store('zbikow-bus') === '1') busLayer.addTo(map);
-    }
+    if (m !== 'modern'){
+      if (TRANSIT){ map.removeLayer(busLayer); busLineLayer.clearLayers(); busShown = {}; }
+      if (POI){ map.removeLayer(poiLayer); nearSheet.classList.remove('open'); }
+    } else if (TRANSIT && store('zbikow-bus') === '1') busLayer.addTo(map);
     var cart = $('war-cartouche');
     cart.hidden = m === 'modern';
     $('war-compass').toggleAttribute('hidden', m === 'modern');
@@ -2233,7 +2258,7 @@
         '<button data-day="" aria-pressed="' + String(!s.day) + '"><small>cały</small>okres</button>' +
         dayList(war.days).map(function(d){
           var lb = dayLabel(d), has = s.events.some(function(e){ return activeOn(e, d); }) || chronByDay[d];
-          return '<button data-day="' + d + '" class="' + (has ? 'has' : '') + '" aria-pressed="' + String(s.day === d) + '">' + lb.d + '<small>' + lb.m + '</small></button>';
+          return '<button data-day="' + d + '" class="' + (has ? 'has' : '') + '" aria-pressed="' + String(s.day === d) + '"' + (has ? '' : ' disabled title="Brak wydarzeń tego dnia"') + '>' + lb.d + '<small>' + lb.m + '</small></button>';
         }).join('') + '</div>' +
         (s.day ? (chronByDay[s.day] || []).map(function(c){ return '<div class="day-note"><b>' + esc(c.date) + '</b>' + esc(c.text) + '</div>'; }).join('') +
           '<div class="day-note"><b>Na mapie</b>' + s.events.filter(function(e){ return activeOn(e, s.day); }).length + ' wydarzeń z tego dnia (' + s.events.filter(function(e){ return e.ll && activeOn(e, s.day); }).length + ' z punktem na mapie); linie z innych dni są wyblakłe.</div>' : '') +
@@ -2381,9 +2406,18 @@
     return [0, 1, 60].some(function(off){ return Math.round((t - e.getTime()) / day) === off; });
   }
   // Timetables are in Warsaw time, whatever the device's time zone.
+  // Returns a local Date whose fields (year … minute) show the current Warsaw wall-clock time.
+  var warsawFmt = null;
+  try { warsawFmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Warsaw', hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' }); } catch (e) {}
   function warsawNow(){
-    try { return new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Warsaw' })); } catch (e) { return new Date(); }
+    if (!warsawFmt) return new Date();
+    var p = {};
+    warsawFmt.formatToParts(new Date()).forEach(function(x){ p[x.type] = +x.value; });
+    var d = new Date(p.year, p.month - 1, p.day, p.hour % 24, p.minute, p.second);
+    return isNaN(d.getTime()) ? new Date() : d;
   }
+  // Same wall-clock time on a neighbouring calendar day (not ±24 h, which slips a day across DST changes).
+  function addDays(dt, n){ return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate() + n, dt.getHours(), dt.getMinutes()); }
   function dayType(dt){ return dt.getDay() === 0 || isHoliday(dt) ? 'su' : dt.getDay() === 6 ? 'sa' : 'wd'; }
   var DAY_LABEL = { wd: 'dzień roboczy', sa: 'sobota', su: 'niedziela i święta' };
   function hm(m){ m = m % 1440; return Math.floor(m / 60) + ':' + ('0' + (m % 60)).slice(-2); }
@@ -2400,14 +2434,19 @@
     return out;
   }
   // Next departures from a stop: today's timetable from now on, topped up with tomorrow's first runs.
+  // Times of 24:00 and later (minutes >= 1440) belong to the previous service day, so just after
+  // midnight yesterday's late runs are still ahead of us.
   function nextDeps(st, n, now){
     now = now || warsawNow();
-    var t = dayType(now), m = now.getHours() * 60 + now.getMinutes(), out = [];
-    Object.keys(st.d).forEach(function(k){ (st.d[k][t] || []).forEach(function(x){ if (x >= m) out.push({ k: k, t: x, wait: x - m }); }); });
+    var t = dayType(now), ty = dayType(addDays(now, -1)), m = now.getHours() * 60 + now.getMinutes(), out = [];
+    Object.keys(st.d).forEach(function(k){
+      (st.d[k][ty] || []).forEach(function(x){ if (x >= 1440 && x - 1440 >= m) out.push({ k: k, t: x - 1440, wait: x - 1440 - m }); });
+      (st.d[k][t] || []).forEach(function(x){ if (x >= m) out.push({ k: k, t: x, wait: x - m }); });
+    });
     out.sort(function(a, b){ return a.t - b.t; });
     if (out.length < n){
-      var tm = new Date(now.getTime() + 864e5), t2 = dayType(tm), more = [];
-      Object.keys(st.d).forEach(function(k){ (st.d[k][t2] || []).forEach(function(x){ more.push({ k: k, t: x, wait: 1440 - m + x, tomorrow: true }); }); });
+      var t2 = dayType(addDays(now, 1)), more = [];
+      Object.keys(st.d).forEach(function(k){ (st.d[k][t2] || []).forEach(function(x){ if (x < 1440) more.push({ k: k, t: x, wait: 1440 - m + x, tomorrow: true }); }); });
       more.sort(function(a, b){ return a.t - b.t; });
       out = out.concat(more.slice(0, n - out.length));
     }
@@ -2425,7 +2464,7 @@
   function busIcon(near){ return L.divIcon({ className: '', html: '<div class="bus-stop' + (near ? ' near' : '') + '">' + busSvg + '</div>', iconSize: [20,20], iconAnchor: [10,10] }); }
   if (TRANSIT){
     TRANSIT.stops.forEach(function(st){
-      var mk = L.marker([st.lat, st.lng], { icon: busIcon(false), keyboard: true, zIndexOffset: -200 });
+      var mk = L.marker([st.lat, st.lng], { icon: busIcon(false), keyboard: true, ariaLabel: 'Przystanek ' + st.n, zIndexOffset: -200 });
       mk.bindTooltip('<b>' + esc(st.n) + '</b><br>linie: ' + esc(stopLines(st).map(function(l){ return TRANSIT.routes[l] ? TRANSIT.routes[l].n : l; }).join(', ')), { className: 'tt', direction: 'top', offset: [0, -10] });
       mk.on('click', function(){ openBusStop(st.id); });
       busMarkers[st.id] = mk;
@@ -2441,7 +2480,12 @@
     store('zbikow-bus', on ? '1' : '0');
     if (on && !quiet) showToast('Przystanki autobusowe: kliknij przystanek, aby zobaczyć najbliższe odjazdy.');
   }
-  $('bus-btn').addEventListener('click', function(e){ e.stopPropagation(); setBus(!map.hasLayer(busLayer)); });
+  $('bus-btn').addEventListener('click', function(e){
+    e.stopPropagation();
+    // Bus stops are a modern-map layer: from a war layer, switch back and show them
+    if (mode !== 'modern'){ setMode('modern', true); setBus(true); return; }
+    setBus(!map.hasLayer(busLayer));
+  });
   if (store('zbikow-bus') === '1') setBus(true, true);
   function drawBusLine(rk, on){
     busShown[rk] = on;
@@ -2467,8 +2511,8 @@
     var t = dayType(warsawNow()), deps = nextDeps(st, 10);
     var byDir = Object.keys(st.d).map(function(k){
       var times = st.d[k][t] || [], hours = {};
-      times.forEach(function(x){ var h = Math.floor(x / 60) % 24; (hours[h] = hours[h] || []).push(('0' + (x % 60)).slice(-2)); });
-      var rows = Object.keys(hours).sort(function(a, b){ return a - b; }).map(function(h){ return '<div><b>' + h + '</b><span>' + hours[h].join(' ') + '</span></div>'; }).join('');
+      times.forEach(function(x){ var h = Math.floor(x / 60); (hours[h] = hours[h] || []).push(('0' + (x % 60)).slice(-2)); });   // after-midnight runs stay at the end
+      var rows = Object.keys(hours).sort(function(a, b){ return a - b; }).map(function(h){ return '<div><b>' + (h % 24) + '</b><span>' + hours[h].join(' ') + '</span></div>'; }).join('');
       return '<details class="notes"><summary>' + lnChip(lineOf(k)) + ' → ' + esc(k.split('|')[1] || '') + ' <small>(' + times.length + ')</small></summary>' +
         '<div class="tt-table">' + (rows || '<div><span>Brak kursów w tym dniu.</span></div>') + '</div></details>';
     }).join('');
@@ -2490,7 +2534,7 @@
     panelBody.scrollTop = 0;
     btn1944.hidden = true;
     current = { kind: 'stop', stopId: id };
-    setHash('');
+    setHash(id, null, 's');
     var wasOpen = panel.classList.contains('open');
     showSheet(panel);
     setActiveMarker(null);
@@ -2499,7 +2543,7 @@
     setTimeout(function(){
       var ll = L.latLng(st.lat, st.lng), z = Math.max(map.getZoom(), 16);
       map.flyTo(offsetCenter(ll, z), z, { duration: 0.5 });
-      map.once('moveend', function(){ if (activeBusMk && activeBusMk._icon) activeBusMk._icon.classList.add('is-active'); });
+      onMoveEnd(function(){ if (activeBusMk && activeBusMk._icon) activeBusMk._icon.classList.add('is-active'); });
     }, wasOpen ? 0 : 60);
   }
   panelBody.addEventListener('click', function(e){
@@ -2577,7 +2621,7 @@
     if (!p.h) return { k: 'unk', t: p.oh ? 'godziny: ' + p.oh : 'brak godzin w OSM' };
     now = now || warsawNow();
     var m = now.getHours() * 60 + now.getMinutes(), today = dayPlan(p, now) || [];
-    var y = new Date(now.getTime() - 864e5), yest = dayPlan(p, y) || [];
+    var y = addDays(now, -1), yest = dayPlan(p, y) || [];
     for (var i = 0; i < yest.length; i++) if (yest[i][1] > 1440 && m + 1440 < yest[i][1]) return { k: 'open', t: 'otwarte do ' + hm(yest[i][1]) };
     for (i = 0; i < today.length; i++) if (m >= today[i][0] && m < today[i][1]) {
       if (today[i][0] === 0 && today[i][1] >= 1440) return { k: 'open', t: 'otwarte całą dobę' };
@@ -2585,7 +2629,7 @@
     }
     for (i = 0; i < today.length; i++) if (today[i][0] > m) return { k: 'closed', t: 'zamknięte · otwierają o ' + hm(today[i][0]) };
     for (var d = 1; d <= 7; d++){
-      var dt = new Date(now.getTime() + d * 864e5), pl = dayPlan(p, dt) || [];
+      var dt = addDays(now, d), pl = dayPlan(p, dt) || [];
       if (pl.length) return { k: 'closed', t: 'zamknięte · otwierają ' + (d === 1 ? 'jutro' : DAYS_PL[(dt.getDay() + 6) % 7]) + ' o ' + hm(pl[0][0]) };
     }
     return { k: 'closed', t: 'zamknięte' };
@@ -2597,8 +2641,9 @@
   if (POI){
     POI.items.forEach(function(p){
       poiById[p.id] = p;
-      var mk = L.marker([p.lat, p.lng], { icon: poiIcon(p), keyboard: true, zIndexOffset: 300 });
-      mk.bindTooltip('<b>' + esc(p.n) + '</b><br>' + esc(p.s) + ' · ' + esc(ohState(p).t), { className: 'tt', direction: 'top', offset: [0, -12] });
+      var mk = L.marker([p.lat, p.lng], { icon: poiIcon(p), keyboard: true, ariaLabel: p.n, zIndexOffset: 300 });
+      // A function, so "open now" is worked out each time the tooltip opens, not frozen at page load
+      mk.bindTooltip(function(){ return '<b>' + esc(p.n) + '</b><br>' + esc(p.s) + ' · ' + esc(ohState(p).t); }, { className: 'tt', direction: 'top', offset: [0, -12] });
       mk.on('click', function(){ openPoi(p.id); });
       poiMarkers[p.id] = mk;
     });
@@ -2722,7 +2767,7 @@
     panelBody.scrollTop = 0;
     btn1944.hidden = true;
     current = { kind: 'poi', poiId: id };
-    setHash('');
+    setHash(id, null, 'poi');
     var wasOpen = panel.classList.contains('open');
     showSheet(panel);
     setActiveMarker(null);
@@ -2731,7 +2776,7 @@
     setTimeout(function(){
       var ll = L.latLng(p.lat, p.lng), z = Math.max(map.getZoom(), 16);
       map.flyTo(offsetCenter(ll, z), z, { duration: 0.5 });
-      map.once('moveend', function(){ if (activePoiMk && activePoiMk._icon) activePoiMk._icon.classList.add('is-active'); });
+      onMoveEnd(function(){ if (activePoiMk && activePoiMk._icon) activePoiMk._icon.classList.add('is-active'); });
     }, wasOpen ? 0 : 60);
   }
   if (POI) POI.items.forEach(function(p){

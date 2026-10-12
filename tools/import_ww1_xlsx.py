@@ -106,10 +106,13 @@ for r in rows('Miejsca'):
     mid = r['ID']
     pt, approx, typ, dfrom, dto, sort, link = PLAN.get(mid, (None, None, CAT_TYPES.get(r['Kategoria'].split(' /')[0], 'zniszczenie'), None, None, '1914', None))
     try:
-        lat, lng = float(r['Szer. geogr.'].replace(',', '.')), float(r['Dł. geogr.'].replace(',', '.'))
+        lat, lng = float((r.get('Szer. geogr.') or '').replace(',', '.')), float((r.get('Dł. geogr.') or '').replace(',', '.'))
+        if not (50 < lat < 55 and 19 < lng < 23):
+            if 50 < lng < 55 and 19 < lat < 23: lat, lng = lng, lat   # swapped columns in the sheet
+            else: raise ValueError('%s: współrzędne poza Mazowszem (%s, %s)' % (mid, lat, lng))
         pt, approx = ('sheet', (lat, lng)), None
-    except ValueError:
-        pass
+    except ValueError as e:
+        if 'Mazowszem' in str(e): print('Pomijam', e, file=sys.stderr)
     ev = {'id': 'ww1-' + mid.lower(), 'code': mid, 'title': r['Nazwa'], 'category': r['Kategoria'], 'type': typ,
           'date': r['Okres'], 'sort': sort, 'desc': r['Opis'], 'where': r['Lokalizacja dziś (opis)'],
           'area': r['Część obszaru'], 'tracks': r['Względem torów'], 'side': r['Strona'] if r['Strona'] not in ('', '—') else '',
@@ -196,11 +199,13 @@ ww1 = {
     'sources': sources, 'events': events, 'lines': lines, 'chronicle': chron,
 }
 
-js = open(WARS).read()
+js = open(WARS, encoding='utf-8').read()
 a = js.index('  ww1: {')
 b = js.index('  ww2: {')
 body = json.dumps(ww1, ensure_ascii=False, indent=2)
 body = '\n'.join('  ' + l if i else l for i, l in enumerate(body.split('\n')))
 js = js[:a] + '  ww1: ' + body + ',\n\n' + js[b:]
-open(WARS, 'w').write(js)
+tmp = WARS + '.tmp'
+open(tmp, 'w', encoding='utf-8').write(js)
+os.replace(tmp, WARS)
 print(len(events), 'events,', sum(1 for e in events if 'lat' in e or 'at' in e or 'ref' in e), 'with position/ref,', len(lines), 'lines,', len(chron), 'chronicle')

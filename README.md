@@ -1,7 +1,7 @@
 # Żbików — Historia na mapie
 
 Interaktywna mapa historii Żbikowa (Leaflet + OpenStreetMap / ortofotomapa / mapa archiwalna).
-Cała aplikacja to jeden statyczny plik `index.html` — nie wymaga budowania ani serwera.
+Cała aplikacja to statyczna strona (`index.html` + dane w `data/` + zdjęcia w `img/`) — nie wymaga budowania ani serwera.
 
 > **Wersja demonstracyjna.** © Tomasz Wrotek. Wszelkie prawa zastrzeżone.
 
@@ -56,7 +56,8 @@ rysuje jej przebieg. W trasach spacerowych sekcja „Dojazd autobusem” podaje 
 
 Dane pochodzą z otwartych plików GTFS (komunikacja miejska Pruszkowa i GPA, republikowane przez
 [zbiorkom.live](https://zbiorkom.live)). `python3 tools/import_transit.py` pobiera je i zapisuje `data/transit.js`;
-workflow Pages robi to przy każdej publikacji i co poniedziałek, więc rozkład na stronie sam się odświeża.
+workflow Pages robi to przy każdej publikacji i co poniedziałek, więc rozkład na stronie sam się odświeża
+(GitHub wyłącza harmonogram po 60 dniach bez aktywności w repozytorium — wtedy trzeba go włączyć w zakładce Actions).
 To rozkład planowy — bez opóźnień na żywo.
 
 ## Okolica
@@ -72,7 +73,7 @@ Dane pochodzą z OpenStreetMap (ODbL) — Google Maps nie pozwala legalnie kopio
 
 ## Trasy spacerowe
 
-Pięć tras tematycznych (dane `ROUTES` w `index.html`). Przebieg po ulicach został wyznaczony raz
+Pięć tras tematycznych (dane w `data/routes.js`). Przebieg po ulicach został wyznaczony raz
 serwisem OSRM (profil pieszy, dane OpenStreetMap) i zapisany w pliku, więc strona nie korzysta
 z żadnej usługi routingu w czasie działania.
 
@@ -80,7 +81,7 @@ z żadnej usługi routingu w czasie działania.
 
 Folder `img/` zawiera wyłącznie historyczne fotografie (sprzed 1990 r.) w domenie publicznej,
 pobrane z Wikimedia Commons (`img/t/` to miniatury). Autor, data, źródło i podstawa prawna
-każdego zdjęcia są zapisane w danych `PHOTOS` w `index.html` i wyświetlane pod zdjęciem.
+każdego zdjęcia są zapisane w `data/photos.js` i wyświetlane pod zdjęciem.
 
 ## Prawa autorskie
 

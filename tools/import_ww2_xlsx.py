@@ -86,10 +86,13 @@ for r in rows('Miejsca'):
     mid = r['ID']
     pt, approx, typ, dfrom, dto, sort, link, pfrom = PLAN.get(mid, (None, None, CAT_TYPES.get(r['Kategoria'], 'obiekt'), None, None, '1939', None, None))
     try:
-        lat, lng = float(r['Szer. geogr.'].replace(',', '.')), float(r['Dł. geogr.'].replace(',', '.'))
+        lat, lng = float((r.get('Szer. geogr.') or '').replace(',', '.')), float((r.get('Dł. geogr.') or '').replace(',', '.'))
+        if not (50 < lat < 55 and 19 < lng < 23):
+            if 50 < lng < 55 and 19 < lat < 23: lat, lng = lng, lat   # swapped columns in the sheet
+            else: raise ValueError('%s: współrzędne poza Mazowszem (%s, %s)' % (mid, lat, lng))
         pt, approx = ('sheet', (lat, lng)), None
-    except ValueError:
-        pass
+    except ValueError as e:
+        if 'Mazowszem' in str(e): print('Pomijam', e, file=sys.stderr)
     ev = {'id': 'ww2-' + mid.lower(), 'code': mid, 'title': r['Nazwa'], 'category': r['Kategoria'], 'type': typ,
           'date': r['Okres'], 'sort': sort, 'desc': r['Opis'], 'where': r['Lokalizacja dziś (opis)'],
           'area': r['Część obszaru'], 'tracks': r['Względem torów'], 'side': r['Strona'] if r['Strona'] not in ('', '—') else '',
@@ -169,7 +172,7 @@ lines = [
      'sources': ['S24', 'S25'], 'from': '1944-08-10', 'to': END, 'context': True, 'coords': [list(C['camp_se']), list(C['grodzisk'])]},
 ]
 
-area = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dulag_area.json')))
+area = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dulag_area.json'), encoding='utf-8'))
 areas = [{'id': 'ww2-teren-dulag', 'title': 'Teren obozu Dulag 121 (dawne Warsztaty Kolejowe)', 'label': 'teren obozu Dulag 121',
           'desc': 'Obrys dzisiejszego terenu MLP Pruszków I (ok. 42 ha) według OpenStreetMap. Obóz zajmował 48–53 ha — granice orientacyjne.',
           'color': '#4A1F1F', 'sources': ['S01', 'S17'], 'from': D, 'to': END, 'coords': area['coords']}]
@@ -193,11 +196,13 @@ ww2 = {
     'sources': sources, 'events': events, 'lines': lines, 'areas': areas, 'chronicle': chron,
 }
 
-js = open(WARS).read()
+js = open(WARS, encoding='utf-8').read()
 a = js.index('  ww2: {')
 b = js.rindex('\n};')
 body = json.dumps(ww2, ensure_ascii=False, indent=2)
 body = '\n'.join('  ' + l if i else l for i, l in enumerate(body.split('\n')))
 js = js[:a] + '  ww2: ' + body + js[b:]
-open(WARS, 'w').write(js)
+tmp = WARS + '.tmp'
+open(tmp, 'w', encoding='utf-8').write(js)
+os.replace(tmp, WARS)
 print(len(events), 'events,', sum(1 for e in events if 'lat' in e or 'at' in e or 'ref' in e), 'with position/ref,', len(lines), 'lines,', len(chron), 'chronicle')
