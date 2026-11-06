@@ -1,14 +1,16 @@
 /* Żbików — Historia na mapie: service worker.
  * Strona, dane i miniatury działają bez sieci; kafelki map są zapamiętywane w ograniczonej liczbie.
  * Zmiana wersji poniżej (albo listy plików) usuwa stary cache przy następnym otwarciu. */
-var VERSION = 'zbikow-v1';
+var VERSION = 'zbikow-v2';
 var SHELL = [
-  './', 'index.html', 'css/fonts.css', 'sw.js',
+  './', 'index.html', 'css/app.css', 'css/fonts.css',
+  'js/00-core.js', 'js/10-map.js', 'js/20-panel.js', 'js/30-search-list.js', 'js/40-routes.js', 'js/50-wars.js', 'js/60-transit.js', 'js/70-poi.js', 'js/90-app.js',
   'data/places.js', 'data/photos.js', 'data/routes.js', 'data/wars.js', 'data/artifacts.js', 'data/transit.js', 'data/poi.js',
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css',
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css',
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js'
+  'https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js'
 ];
 var TILE_CACHE = VERSION + '-tiles', TILE_LIMIT = 600;
 var TILE_HOSTS = /(tile\.openstreetmap\.(org|fr)|arcgisonline\.com|mapwarper\.net)$/;
