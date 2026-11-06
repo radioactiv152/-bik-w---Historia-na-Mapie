@@ -30,8 +30,8 @@
   :root[data-theme="dzien"]{
     --bg:#FBF7F0; --panel:#FFFFFF; --map-bg:#EFE9DD; --glass-rgb:255,255,255;
     --text:#1D2A33; --muted:#5E6D78; --ink-rgb:29,42,51;
-    --accent:#E4572E; --accent-rgb:228,87,46; --accent-ink:#FFFFFF; --accent-hover:#EE6C45;
-    --red:#D7263D; --ok:#23915A; --ok-rgb:35,145,90; --mid:#D9822B; --low:#D7263D; --low-rgb:215,38,61;
+    --accent:#C2401A; --accent-rgb:194,64,26; --accent-ink:#FFFFFF; --accent-hover:#D44D25;
+    --red:#D7263D; --ok:#1F7F4F; --ok-rgb:31,127,79; --mid:#B8641A; --low:#D7263D; --low-rgb:215,38,61;
     --pin-ring:#FFFFFF; --casing:rgba(255,255,255,0.95); --shadow-a:0.18;
     color-scheme: light;
   }
@@ -39,15 +39,15 @@
     --bg:#F2E8D5; --panel:#FBF5E9; --map-bg:#E8DCC4; --glass-rgb:251,245,233;
     --text:#3A2E22; --muted:#7A6A55; --ink-rgb:58,46,34;
     --accent:#A8472A; --accent-rgb:168,71,42; --accent-ink:#FFF8EC; --accent-hover:#BD5637;
-    --red:#8E2C1F; --ok:#4F7F3A; --ok-rgb:79,127,58; --mid:#B8742A; --low:#A8472A; --low-rgb:168,71,42;
+    --red:#8E2C1F; --ok:#447034; --ok-rgb:68,112,52; --mid:#B8742A; --low:#A8472A; --low-rgb:168,71,42;
     --pin-ring:#FBF5E9; --casing:rgba(251,245,233,0.95); --shadow-a:0.2;
     color-scheme: light;
   }
   :root[data-theme="morski"]{
     --bg:#1C4552; --panel:#234F5C; --map-bg:#173E49; --glass-rgb:15,45,53;
-    --text:#EDE3C7; --muted:#C2B48F; --ink-rgb:237,227,199;
-    --accent:#D98F45; --accent-rgb:217,143,69; --accent-ink:#1C1509; --accent-hover:#E49B52;
-    --red:#C23B30; --ok:#8FC08A; --ok-rgb:143,192,138; --mid:#D98F45; --low:#E0735F; --low-rgb:224,115,95;
+    --text:#EDE3C7; --muted:#CDBF9B; --ink-rgb:237,227,199;
+    --accent:#EFAD60; --accent-rgb:239,173,96; --accent-ink:#1C1509; --accent-hover:#F5BB74;
+    --red:#C23B30; --ok:#8FC08A; --ok-rgb:143,192,138; --mid:#EFAD60; --low:#F59D8B; --low-rgb:245,157,139;
     --pin-ring:#1C4552; --casing:rgba(11,34,40,0.55); --shadow-a:0.4;
     color-scheme: dark;
   }
@@ -67,6 +67,13 @@
   :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   [hidden]{display:none !important}
   .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  /* Keyboard users: the map has dozens of focusable markers, so offer a way past it */
+  .skip-link{position:fixed;left:12px;top:-60px;z-index:3000;background:var(--accent);color:var(--accent-ink);font-weight:700;padding:10px 14px;border-radius:10px;text-decoration:none;transition:top .15s}
+  .skip-link:focus{top:12px;outline:2px solid var(--text);outline-offset:2px}
+  /* Larger text (style menu → Rozmiar tekstu): scales the cards, lists and dialogs, not the map */
+  html[data-text="big"] .sheet-head,html[data-text="big"] .sheet-body,html[data-text="big"] .actions,html[data-text="big"] .dlg-body,html[data-text="big"] #search-results,html[data-text="big"] .route-bar{zoom:1.18}
+  html[data-text="big"] .leaflet-tooltip.tt{font-size:14.5px}
+  html[data-text="big"] #toast{font-size:15px}
   kbd{font-family:inherit;font-size:12px;background:var(--faint);border:1px solid var(--border-strong);border-radius:5px;padding:1px 6px}
 
   #app{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;overflow:clip}
@@ -93,6 +100,7 @@
   .search-item mark{background:rgba(var(--accent-rgb),0.28);color:inherit;border-radius:3px;padding:0 1px}
   .search-empty{padding:12px;color:var(--muted);font-size:13px}
   .flag{display:inline-block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;border:1px solid var(--border-strong);border-radius:999px;padding:1px 7px;margin-left:4px;vertical-align:1px}
+  .icon-btn.labeled{width:auto;padding:0 14px 0 12px;gap:8px;font-weight:700;font-size:13px}
   .icon-btn{display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:rgba(var(--ink-rgb),0.08);border:1px solid var(--border-strong);color:var(--text);flex-shrink:0;transition:background .15s}
   .icon-btn:hover{background:rgba(var(--ink-rgb),0.16)}
 
@@ -130,6 +138,10 @@
   .style-menu .sm-grid button[aria-pressed="true"]{border-color:var(--accent)}
   .style-menu .sm-grid .sw{width:56px;height:40px;border-radius:7px;border:1px solid var(--border-strong)}
   .style-menu .sm-grid.themes .sw{height:28px}
+  .style-menu .sm-row{display:flex;gap:6px;padding:0 4px 6px}
+  .style-menu .sm-row button{flex:1;background:none;border:2px solid var(--border-strong);border-radius:10px;padding:8px 6px;color:var(--text);font-size:13px;font-weight:600}
+  .style-menu .sm-row button[aria-pressed="true"]{border-color:var(--accent);background:rgba(var(--accent-rgb),0.12)}
+  .style-menu .sm-row button b{font-size:17px;font-family:'Fraunces',Georgia,serif;margin-right:4px}
   .map-ui{transition:right .25s ease,left .25s ease,opacity .2s ease}
   .zoom-ctrl{position:absolute;right:16px;bottom:96px;z-index:500;display:flex;flex-direction:column;border-radius:12px;overflow:hidden}
   .zoom-ctrl button{width:40px;height:40px;background:transparent;border:none;color:var(--text);font-size:18px;display:flex;align-items:center;justify-content:center}
@@ -155,7 +167,7 @@
   .sheet.open{transform:translateX(0);visibility:visible}
   .sheet-head{display:flex;align-items:center;gap:10px;padding:12px 14px 12px 22px;border-bottom:1px solid var(--border);flex-shrink:0}
   .sheet-head .grow{flex:1;min-width:0}
-  .sheet-head h3{margin:0;font-size:16px;font-weight:600}
+  .sheet-head h2,.sheet-head h3{margin:0;font-size:16px;font-weight:600}
   .sheet-head small{color:var(--muted);font-size:12.5px}
   .sheet-body{overflow-y:auto;flex:1;overscroll-behavior:contain}
   .sheet-body::-webkit-scrollbar{width:8px}
@@ -224,7 +236,7 @@
   .cz-nav.prev{left:12px}.cz-nav.next{right:12px}
   .cz-nav[hidden]{display:none}
   .cz-cap{padding:14px 22px 6px;display:flex;flex-direction:column;gap:6px}
-  .cz-cap h3{margin:0;font-family:'Fraunces',Georgia,serif;font-size:20px;font-weight:600}
+  .cz-cap h2{margin:0;font-family:'Fraunces',Georgia,serif;font-size:20px;font-weight:600}
   .cz-cap .cz-meta{font-size:12.5px;color:var(--accent);font-weight:700}
   .cz-cap p{margin:0;font-size:14px;line-height:1.6}
   .cz-cap .cz-src{font-size:12px;color:var(--muted)}
@@ -538,6 +550,7 @@
   .dlg-body{padding:22px 24px 24px;overflow-y:auto;max-height:calc(100dvh - 120px);font-size:14px;line-height:1.6}
   .dlg-body h4{margin:18px 0 8px;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted)}
   .dlg-body p{margin:0 0 10px}
+  .linklike{background:none;border:none;padding:0;color:var(--accent);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
   .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   .stat{background:var(--faint);border:1px solid var(--border);border-radius:12px;padding:10px 12px}
   .stat b{display:block;font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:600;color:var(--accent);line-height:1.1}
@@ -549,6 +562,33 @@
   .demo-note{margin:0 0 14px;padding:10px 12px;border:1px solid var(--border-strong);border-radius:12px;background:var(--faint);font-size:13px}
   .dlg-body .copyright{margin:18px 0 0;padding-top:12px;border-top:1px solid var(--border);font-size:12.5px;color:var(--muted)}
 
+  /* Welcome (first visit) */
+  #welcome{width:min(640px,calc(100% - 24px))}
+  .wl-hero{padding:28px 28px 8px;text-align:center}
+  .wl-hero .kicker{margin-bottom:8px}
+  .wl-hero h2{font-size:28px;line-height:1.15;margin:0 0 10px;font-weight:600}
+  .wl-hero p{margin:0 auto;max-width:48ch;font-size:15px;line-height:1.6;color:var(--muted)}
+  .wl-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:16px 24px 6px}
+  .wl-cards button{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;background:var(--faint);border:1px solid var(--border-strong);border-radius:14px;padding:14px;color:var(--text);min-height:120px;transition:background .15s,border-color .15s}
+  .wl-cards button:hover{background:rgba(var(--ink-rgb),0.12);border-color:var(--accent)}
+  .wl-cards .ic{width:36px;height:36px;border-radius:10px;background:rgba(var(--accent-rgb),0.18);color:var(--accent);display:flex;align-items:center;justify-content:center}
+  .wl-cards button > div{display:flex;flex-direction:column;gap:4px}
+  .wl-cards b{font-size:15px}
+  .wl-cards span{font-size:13px;line-height:1.45;color:var(--muted)}
+  .wl-tip{margin:8px 24px 0;padding:10px 12px;border-radius:10px;background:var(--faint);font-size:13.5px;line-height:1.5;display:flex;gap:10px;align-items:flex-start}
+  .wl-tip .marker-pin{flex-shrink:0;margin-top:-2px}
+  .wl-foot{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 24px 22px}
+  .wl-foot .btn{flex:0 0 auto;min-width:240px;font-size:15px;padding:13px 20px}
+  .wl-foot small{color:var(--muted);font-size:12.5px}
+  @media (max-width: 600px){
+    .wl-hero{padding:22px 18px 4px}
+    .wl-hero h2{font-size:23px}
+    .wl-cards{grid-template-columns:1fr;padding:12px 16px 4px}
+    .wl-cards button{flex-direction:row;align-items:center;min-height:0;gap:12px}
+    .wl-tip{margin:8px 16px 0}
+    .wl-foot{padding:14px 16px 18px}
+    .wl-foot .btn{width:100%}
+  }
   #toast{position:absolute;left:50%;top:16px;transform:translateX(-50%) translateY(-20px);opacity:0;pointer-events:none;transition:.2s ease;background:var(--panel);border:1px solid var(--border-strong);border-radius:12px;padding:11px 16px;font-size:13px;max-width:min(440px,calc(100% - 32px));text-align:center;box-shadow:var(--shadow);z-index:1300}
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
@@ -557,6 +597,9 @@
   /* ---------- Mobile ---------- */
   @media (max-width: 860px){
     :root{--header-h:60px}
+    .icon-btn.labeled{width:40px;padding:0}
+    .icon-btn.labeled .lbl{display:none}
+    #bus-btn .lbl{display:none}
     header{padding:0 12px;gap:10px}
     .brand-text .tag{display:none}
     .search-wrap{max-width:none}
@@ -618,8 +661,10 @@
 </head>
 <body>
 <div id="app">
+  <a class="skip-link" href="#view-bar">Pomiń mapę i przejdź do menu widoków</a>
 
   <header>
+    <h1 class="sr-only">Żbików — Historia na mapie</h1>
     <button class="brand" id="brand" aria-label="Pokaż cały Żbików">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--accent)" stroke-width="1.6" aria-hidden="true"><path d="M12 21s7-6.1 7-11.5A7 7 0 0 0 5 9.5C5 14.9 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.4"/></svg>
       <span class="brand-text">
@@ -635,8 +680,8 @@
       <kbd class="search-kbd">/</kbd>
       <div id="search-results" role="listbox" aria-label="Wyniki wyszukiwania"></div>
     </div>
-    <button class="icon-btn" id="info-btn" aria-label="O projekcie i legenda" aria-haspopup="dialog">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg>
+    <button class="icon-btn labeled" id="info-btn" aria-label="O mapie: jak korzystać, legenda" aria-haspopup="dialog">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg><span class="lbl">O mapie</span>
     </button>
   </header>
 
@@ -663,7 +708,7 @@
         <span class="sep" aria-hidden="true"></span>
         <button id="ov-btn" aria-pressed="false" title="Nakładka: zdjęcie lotnicze z 1944 r. na mapie współczesnej">1944</button>
         <span class="sep" aria-hidden="true"></span>
-        <button id="bus-btn" aria-pressed="false" title="Przystanki i rozkłady autobusów (Pruszków, GPA)" aria-label="Przystanki autobusowe"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="3" width="16" height="15" rx="3"/><path d="M4 11h16M8 21v-3M16 21v-3"/><circle cx="8.5" cy="14.5" r=".6" fill="currentColor"/><circle cx="15.5" cy="14.5" r=".6" fill="currentColor"/></svg></button>
+        <button id="bus-btn" aria-pressed="false" title="Przystanki i rozkłady autobusów (Pruszków, GPA)" aria-label="Przystanki autobusowe" style="display:flex;align-items:center;gap:7px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="3" width="16" height="15" rx="3"/><path d="M4 11h16M8 21v-3M16 21v-3"/><circle cx="8.5" cy="14.5" r=".6" fill="currentColor"/><circle cx="15.5" cy="14.5" r=".6" fill="currentColor"/></svg><span class="lbl">Autobusy</span></button>
       </div>
       <div class="ov-panel glass" id="opacity-ctrl">
         <label for="opacity-slider">1944</label>
@@ -676,6 +721,11 @@
         <div class="sm-grid" id="sm-maps"></div>
         <div class="sm-label">Kolory strony</div>
         <div class="sm-grid themes" id="sm-themes"></div>
+        <div class="sm-label">Rozmiar tekstu</div>
+        <div class="sm-row" id="sm-text" role="group" aria-label="Rozmiar tekstu">
+          <button data-text="normal" aria-pressed="true"><b>A</b>Normalny</button>
+          <button data-text="big" aria-pressed="false"><b style="font-size:21px">A</b>Większy</button>
+        </div>
       </div>
     </div>
 
@@ -699,7 +749,7 @@
         </div>
         <button class="icon-btn" id="wt-next" aria-label="Później">›</button>
       </div>
-      <div class="seg pill glass" role="toolbar" aria-label="Warstwy i widoki">
+      <div class="seg pill glass" id="view-bar" tabindex="-1" role="toolbar" aria-label="Warstwy i widoki">
         <button class="seg-btn" data-layer="wspolczesna" aria-pressed="true"><span class="lg">Współczesna</span><span class="sh">Dziś</span></button>
         <button class="seg-btn" data-layer="ww1" aria-pressed="false" title="I wojna światowa (1914–1918)"><span class="lg">I wojna</span><span class="sh">I<br>wojna</span></button>
         <button class="seg-btn" data-layer="ww2" aria-pressed="false" title="II wojna światowa (1939–1945)"><span class="lg">II wojna</span><span class="sh">II<br>wojna</span></button>
@@ -723,8 +773,9 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v4l2.6 2.6"/></svg>
           <span>Zobacz na zdjęciu z 1944</span>
         </button>
-        <button class="btn narrow" id="btn-share" aria-label="Kopiuj link do tego miejsca" title="Kopiuj link">
+        <button class="btn narrow" id="btn-share" aria-label="Kopiuj link do tego miejsca" title="Kopiuj link do tego miejsca">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>
+          <span>Kopiuj link</span>
         </button>
       </div>
     </aside>
@@ -734,7 +785,7 @@
       <div class="sheet-head">
         <div class="grow">
           <div class="kicker" id="war-kicker">Warstwa historyczna</div>
-          <h3 class="display" id="war-title">Wojna</h3>
+          <h2 class="display" id="war-title">Wojna</h2>
         </div>
         <button class="icon-btn" id="close-war" aria-label="Zamknij listę wydarzeń"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
       </div>
@@ -746,7 +797,7 @@
       <div class="sheet-head">
         <div class="grow">
           <div class="kicker" id="near-kicker">Okolica · teraz</div>
-          <h3 class="display" id="near-title">W pobliżu</h3>
+          <h2 class="display" id="near-title">W pobliżu</h2>
         </div>
         <button class="icon-btn" id="close-near" aria-label="Zamknij okolicę"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
       </div>
@@ -758,7 +809,7 @@
       <div class="sheet-head">
         <div class="grow">
           <div class="kicker" id="routes-kicker">Trasy spacerowe</div>
-          <h3 class="display" id="routes-title">Wybierz trasę</h3>
+          <h2 class="display" id="routes-title">Wybierz trasę</h2>
         </div>
         <button class="icon-btn" id="close-routes" aria-label="Zamknij trasy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
       </div>
@@ -769,7 +820,7 @@
       <div class="grabber" aria-hidden="true"></div>
       <div class="sheet-head">
         <div class="grow">
-          <h3 class="display" id="list-title">Wszystkie miejsca</h3>
+          <h2 class="display" id="list-title">Wszystkie miejsca</h2>
           <small id="list-count"></small>
         </div>
         <button class="icon-btn" id="close-list" aria-label="Zamknij listę"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
@@ -792,7 +843,7 @@
 
 <dialog id="info" aria-labelledby="info-title">
   <div class="sheet-head">
-    <div class="grow"><h3 class="display" id="info-title">Żbików — Historia na mapie</h3></div>
+    <div class="grow"><h2 class="display" id="info-title">Żbików — Historia na mapie</h2></div>
     <button class="icon-btn" id="close-info" aria-label="Zamknij"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
   </div>
   <div class="dlg-body">
@@ -820,9 +871,29 @@
     <p>Pokazujemy wyłącznie fotografie historyczne (sprzed 1990 r.) w domenie publicznej. Pod każdym zdjęciem jest autor, data, źródło i podstawa prawna. Punkty ze zdjęciem mają jasną obwódkę; przycisk <b>Zdjęcia</b> pokazuje listę takich miejsc.</p>
     <h4>O danych</h4>
     <p>Obiekty bez dokładnego adresu (lokalizacja opisowa lub obszarowa) są w wyszukiwarce i na liście, ale nie mają punktu na mapie — żeby mapa nie sugerowała większej pewności niż dają źródła.</p>
+    <h4>Ułatwienia</h4>
+    <p>W menu stylu mapy (lewy górny róg) ustawisz <b>kolory strony</b> (jasne, ciemne, papierowe) i <b>większy tekst</b>. <button class="linklike" id="show-welcome" type="button">Pokaż ekran powitalny jeszcze raz</button>.</p>
     <h4>Skróty</h4>
     <p><kbd>/</kbd> wyszukiwanie · <kbd>↑</kbd><kbd>↓</kbd> <kbd>Enter</kbd> wybór wyniku · <kbd>Esc</kbd> zamknij</p>
     <p class="copyright">© Tomasz Wrotek. Wszelkie prawa zastrzeżone. Wersja demonstracyjna.<br>Dane map, fotografie i dane otwarte pozostają na licencjach podanych przy nich (OpenStreetMap — ODbL, zdjęcia — domena publiczna).</p>
+  </div>
+</dialog>
+
+<dialog id="welcome" aria-labelledby="wl-title">
+  <div class="wl-hero">
+    <div class="kicker">Żbików · Historia na mapie</div>
+    <h2 class="display" id="wl-title">Witaj na mapie historii Żbikowa</h2>
+    <p>Każdy czerwony punkt to miejsce z historią: dom, szkoła, zakład, kościół, miejsce pamięci. Kliknij punkt, żeby przeczytać, co tu było.</p>
+  </div>
+  <div class="wl-cards">
+    <button type="button" data-go="miejsca"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span><div><b>Lista miejsc</b><span>Wszystkie miejsca alfabetycznie, z opisem, datami i źródłami.</span></div></button>
+    <button type="button" data-go="trasy"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 19c3-6 6-6 8-1s5 5 8-6"/><circle cx="4" cy="19" r="1.6" fill="currentColor"/><circle cx="20" cy="12" r="1.6" fill="currentColor"/></svg></span><div><b>Trasy spacerowe</b><span>Pięć tras po ulicach Żbikowa, od 15 minut do godziny.</span></div></button>
+    <button type="button" data-go="ww2"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v4l2.6 2.6"/></svg></span><div><b>Lata wojny</b><span>Mapy z lat 1914–1918 i 1939–1945 z osią czasu dzień po dniu.</span></div></button>
+  </div>
+  <div class="wl-tip"><span class="marker-group" style="width:26px;height:26px;font-size:11px;flex-shrink:0">5</span><span>Liczba w kółku to kilka miejsc blisko siebie — przybliż mapę albo kliknij kółko, żeby je rozdzielić. Przycisk <b>1944</b> nakłada na mapę zdjęcie lotnicze z czasów wojny.</span></div>
+  <div class="wl-foot">
+    <button class="btn primary" id="wl-start" type="button">Zacznij od mapy</button>
+    <small>Ten ekran znajdziesz później pod przyciskiem „O mapie”.</small>
   </div>
 </dialog>
 
@@ -839,7 +910,7 @@
   </div>
   <div class="cz-cap">
     <div class="cz-meta" id="cz-meta"></div>
-    <h3 id="cz-title"></h3>
+    <h2 id="cz-title"></h2>
     <p id="cz-desc"></p>
     <div class="cz-src" id="cz-src"></div>
   </div>
@@ -990,10 +1061,20 @@
     if (!b) return;
     if (b.dataset.map) setMapStyle(b.dataset.map);
     if (b.dataset.theme) setTheme(b.dataset.theme);
+    if (b.dataset.text) setTextSize(b.dataset.text);
   });
   document.addEventListener('click', function(){ toggleStyleMenu(false); });
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') toggleStyleMenu(false); });
-  setTheme(qs.get('theme') || store('zbikow-theme') || 'noc');
+  // First visit: follow the device's light/dark preference; afterwards the chosen theme
+  var prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+  setTheme(qs.get('theme') || store('zbikow-theme') || (prefersLight ? 'dzien' : 'noc'));
+  function setTextSize(k){
+    k = k === 'big' ? 'big' : 'normal';
+    document.documentElement.setAttribute('data-text', k);
+    document.querySelectorAll('#sm-text button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.text === k)); });
+    store('zbikow-text', k);
+  }
+  setTextSize(store('zbikow-text'));
   setMapStyle(qs.get('map') || store('zbikow-map') || 'kolorowa');
 
   // 1944 aerial overlay (georeferenced in MapWarper), on its own pane so the tile filters
@@ -2861,7 +2942,25 @@
     if (grab) grab.addEventListener('click', function(){ sheet.classList.toggle('expanded'); });
   });
 
-  readHash();
+  // --- Welcome screen: once, on a first visit without a deep link ---
+  var welcome = $('welcome');
+  function openWelcome(){ if (welcome.showModal) welcome.showModal(); else welcome.setAttribute('open', ''); }
+  function closeWelcome(){ store('zbikow-welcome', '1'); if (welcome.open) welcome.close(); }
+  $('wl-start').addEventListener('click', closeWelcome);
+  welcome.addEventListener('close', function(){ store('zbikow-welcome', '1'); });
+  welcome.addEventListener('click', function(e){
+    if (e.target === welcome){ closeWelcome(); return; }
+    var b = e.target.closest('button[data-go]');
+    if (!b) return;
+    closeWelcome();
+    var go = b.dataset.go;
+    if (go === 'ww2') setMode('ww2');
+    else document.querySelector('.seg-btn[data-layer="' + go + '"]').click();
+  });
+  $('show-welcome').addEventListener('click', function(){ if (info.open) info.close(); openWelcome(); });
+
+  var deepLinked = readHash();
+  if (!deepLinked && !location.hash && store('zbikow-welcome') !== '1') openWelcome();
 })();
 </script>
 </body>

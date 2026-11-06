@@ -71,6 +71,16 @@ Dane pochodzą z OpenStreetMap (ODbL) — Google Maps nie pozwala legalnie kopio
 `python3 tools/import_poi.py` pobiera je przez Overpass API i zamienia godziny otwarcia na prosty plan tygodniowy
 (`data/poi.js`); workflow Pages robi to przy każdej publikacji i co poniedziałek.
 
+## Ułatwienia dostępu
+
+- Przy pierwszej wizycie strona pokazuje ekran powitalny z trzema wejściami (lista miejsc, trasy, lata wojny);
+  można go wywołać ponownie z okna „O mapie”.
+- Kolory strony (ciemne, jasne, papierowe, morskie) dobierają się przy pierwszej wizycie do ustawień urządzenia;
+  wszystkie motywy mają kontrast tekstu co najmniej 4,5:1 (WCAG AA).
+- W menu stylu mapy jest przełącznik **Rozmiar tekstu** (normalny / większy) — powiększa karty, listy i okna, nie mapę.
+- Link „Pomiń mapę” (pierwszy Tab) prowadzi klawiaturą od razu do menu widoków, z pominięciem znaczników na mapie.
+- Wszystkie przyciski mają nazwy dla czytników ekranu, a na ekranach dotykowych co najmniej 44 px wysokości.
+
 ## Trasy spacerowe
 
 Pięć tras tematycznych (dane w `data/routes.js`). Przebieg po ulicach został wyznaczony raz
