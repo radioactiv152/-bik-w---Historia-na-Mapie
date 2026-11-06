@@ -12,9 +12,7 @@
 <meta property="og:description" content="Interaktywna mapa historii Żbikowa z warstwą zdjęcia lotniczego z 1944 r.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%231C4552'/%3E%3Cpath d='M12 20s6-5.2 6-9.8A6 6 0 0 0 6 10.2C6 14.8 12 20 12 20Z' fill='none' stroke='%23D98F45' stroke-width='1.8'/%3E%3Ccircle cx='12' cy='10.2' r='2' fill='%23D98F45'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&family=Special+Elite&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/fonts.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css"/>
 <style>
@@ -1090,25 +1088,34 @@
   map.createPane('pane1944');
   map.getPane('pane1944').style.zIndex = 350;   // above the base tiles (200), below route/war/bus lines (400)
   var slider = $('opacity-slider');
+  // Extent of the georeferenced photo (MapWarper API, map 112543): outside it there is nothing to show
+  var BOUNDS_1944 = L.latLngBounds([52.1315061, 20.7500685], [52.2018091, 20.8610813]);
   var layer1944 = L.tileLayer('https://mapwarper.net/maps/tile/112543/{z}/{x}/{y}.png', {
-    pane: 'pane1944', opacity: 1 - parseFloat(slider.value), maxZoom: 19, maxNativeZoom: 17,
+    pane: 'pane1944', opacity: 1 - parseFloat(slider.value), maxZoom: 19, maxNativeZoom: 17, bounds: BOUNDS_1944,
     attribution: 'Zdjęcie lotnicze 1944, zgeoreferencowane w MapWarper'
   });
+  var frame1944 = L.rectangle(BOUNDS_1944, { color: '#D98F45', weight: 1.5, dashArray: '6 6', fill: false, interactive: false });
+  function in1944(ll){ return !!ll && BOUNDS_1944.contains(ll); }
   // Slider is oriented "1944" (left) -> "dziś" (right); its value represents how far toward
   // "today" you've dragged, so the 1944 layer's opacity is the inverse of that value.
   slider.addEventListener('input', function(){ layer1944.setOpacity(1 - parseFloat(slider.value)); });
 
   var btn1944 = $('btn-1944');
   function set1944(on){
-    if (on && !map.hasLayer(layer1944)) layer1944.addTo(map);
-    if (!on && map.hasLayer(layer1944)) map.removeLayer(layer1944);
+    if (on && !map.hasLayer(layer1944)){ layer1944.addTo(map); frame1944.addTo(map); }
+    if (!on && map.hasLayer(layer1944)){ map.removeLayer(layer1944); map.removeLayer(frame1944); }
     $('opacity-ctrl').classList.toggle('show', on);
     $('ov-btn').setAttribute('aria-pressed', String(on));
     btn1944.setAttribute('aria-pressed', String(on));
     btn1944.querySelector('span').textContent = on ? 'Wróć do mapy współczesnej' : 'Zobacz na zdjęciu z 1944';
   }
 
-  $('ov-btn').addEventListener('click', function(e){ e.stopPropagation(); set1944(!map.hasLayer(layer1944)); });
+  $('ov-btn').addEventListener('click', function(e){
+    e.stopPropagation();
+    var on = !map.hasLayer(layer1944);
+    set1944(on);
+    if (on && !BOUNDS_1944.intersects(map.getBounds())){ map.fitBounds(BOUNDS_1944, { padding: [40, 40] }); showToast('Zdjęcie z 1944 r. obejmuje Żbików i Pruszków — przesunięto mapę na jego zasięg (przerywana ramka).'); }
+  });
 
   $('zoom-in').addEventListener('click', function(){ map.zoomIn(); });
   $('zoom-out').addEventListener('click', function(){ map.zoomOut(); });
@@ -1392,7 +1399,7 @@
     galleryLists = [];
     panelBody.innerHTML = (activeRoute && routeStop != null ? routeBarHTML(routeStop) : '') + renderRecordHTML(r.item, p);
     panelBody.scrollTop = 0;
-    btn1944.hidden = !p;
+    btn1944.hidden = !p || !in1944([p.lat, p.lng]);   // no photo outside the 1944 extent
     current = { place: r.place, item: r.item, kind: r.kind, routeStop: routeStop };
     var wasOpen = panel.classList.contains('open');
     clearExtraActive();
@@ -2531,7 +2538,7 @@
         modernLink: e.modernLink
       });
     panelBody.scrollTop = 0;
-    btn1944.hidden = !e.ll;
+    btn1944.hidden = !in1944(e.ll);
     current = { place: e.place, item: e.item, kind: 'event', warKey: key, warIndex: i };
     var wasOpen = panel.classList.contains('open');
     showSheet(panel);
@@ -3087,6 +3094,10 @@
   $('show-welcome').addEventListener('click', function(){ if (info.open) info.close(); openWelcome(); });
 
   document.querySelector('.skip-link').addEventListener('click', function(e){ e.preventDefault(); $('view-bar').focus(); });
+  // Offline / fast repeat visits: the page, data and thumbnails are cached by sw.js (not on file://)
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  }
   var deepLinked = readHash();
   if (!deepLinked && !location.hash && store('zbikow-welcome') !== '1') openWelcome();
 })();

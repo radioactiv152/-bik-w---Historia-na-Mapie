@@ -38,7 +38,7 @@ jobs:
       - name: Przygotuj pliki strony
         run: |
           mkdir -p _site
-          cp -r index.html .nojekyll img data _site/
+          cp -r index.html .nojekyll sw.js img data css fonts _site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
