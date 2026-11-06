@@ -1,7 +1,7 @@
 # Żbików — Historia na mapie
 
 Interaktywna mapa historii Żbikowa (Leaflet + OpenStreetMap / ortofotomapa / mapa archiwalna).
-Cała aplikacja to statyczna strona (`index.html` + dane w `data/` + zdjęcia w `img/`) — nie wymaga budowania ani serwera.
+Cała aplikacja to statyczna strona (`index.html`, style w `css/`, skrypty w `js/`, dane w `data/`, zdjęcia w `img/`) — nie wymaga budowania ani serwera.
 
 > **Wersja demonstracyjna.** © Tomasz Wrotek. Wszelkie prawa zastrzeżone.
 
@@ -26,7 +26,20 @@ python3 -m http.server 8000
 # http://localhost:8000
 ```
 
-Wymagany dostęp do internetu (Leaflet i czcionki ładowane z CDN, kafelki map z zewnętrznych serwerów).
+Przy pierwszym otwarciu potrzebny jest internet (Leaflet z CDN, kafelki map z zewnętrznych serwerów). Czcionki są lokalne (`fonts/`).
+Po pierwszej wizycie `sw.js` (service worker) trzyma stronę, dane, miniatury i ostatnio oglądane kafelki w pamięci podręcznej,
+więc kolejne otwarcia są natychmiastowe, a spacer z trasą działa bez zasięgu (nowe fragmenty mapy wymagają sieci).
+
+## Struktura kodu
+
+| Plik | Zawartość |
+|---|---|
+| `css/app.css`, `css/fonts.css` | style strony (motywy, układ mobilny, druk) i lokalne czcionki |
+| `js/00-core.js` … `js/90-app.js` | skrypty w kolejności ładowania; dzielą jeden zakres globalny: dane, mapa, karty, wyszukiwarka, trasy, wojny, autobusy, Okolica, start |
+| `js/05-i18n.js` | tłumaczenie interfejsu na angielski (`?lang=en` albo menu stylu mapy); treść pozostaje po polsku |
+| `sw.js` | praca offline i szybkie ponowne otwarcie |
+| `tests/` | testy Playwright (komputer i telefon): `cd tests && npm ci && npx playwright install chromium && npx playwright test` — uruchamiane też w workflow przed publikacją |
+
 
 ## Dane
 
@@ -80,12 +93,29 @@ Dane pochodzą z OpenStreetMap (ODbL) — Google Maps nie pozwala legalnie kopio
 - W menu stylu mapy jest przełącznik **Rozmiar tekstu** (normalny / większy) — powiększa karty, listy i okna, nie mapę.
 - Link „Pomiń mapę” (pierwszy Tab) prowadzi klawiaturą od razu do menu widoków, z pominięciem znaczników na mapie.
 - Wszystkie przyciski mają nazwy dla czytników ekranu, a na ekranach dotykowych co najmniej 44 px wysokości.
+- Interfejs po angielsku: `?lang=en` albo „Język · Language” w menu stylu mapy (opisy miejsc pozostają po polsku).
 
 ## Trasy spacerowe
 
 Pięć tras tematycznych (dane w `data/routes.js`). Przebieg po ulicach został wyznaczony raz
 serwisem OSRM (profil pieszy, dane OpenStreetMap) i zapisany w pliku, więc strona nie korzysta
 z żadnej usługi routingu w czasie działania.
+
+Po włączeniu „Gdzie jestem?” strona pokazuje nad menu najbliższy przystanek trasy i odległość do niego,
+odległości na liście przystanków, a po podejściu na ok. 40 m sama otwiera kartę przystanku (raz na przystanek).
+Trasę można wydrukować (przycisk „Drukuj trasę” — lista przystanków i link do mapy).
+
+## Udostępnianie i zgłaszanie uwag
+
+Każda karta ma przycisk „Udostępnij” (na telefonie systemowy arkusz, na komputerze kopiowanie linku) i kod QR
+do wydruku, np. na tabliczkę przy obiekcie. Pod opisem jest link „Zgłoś błąd lub uzupełnienie”, który otwiera
+wstępnie wypełnione zgłoszenie w tym repozytorium.
+
+## Miejsca bez punktu
+
+`python3 tools/suggest_locations.py` tworzy `tools/unmapped_report.md`: listę rekordów i wydarzeń bez punktu na mapie
+z podpowiedziami (obiekt z bazy wymieniony w opisie, adres albo ulica z OpenStreetMap). Podpowiedzi są do ręcznego
+sprawdzenia; zatwierdzony punkt wpisuje się do arkusza albo do `data/places.js`.
 
 ## Zdjęcia
 

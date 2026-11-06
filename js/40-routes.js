@@ -18,11 +18,11 @@ function routeStopName(r, i){
   return rec ? rec.item.name : '';
 }
 function routeMeta(r){
-  return String(r.km).replace('.', ',') + ' km · ok. ' + r.minutes + ' min · ' + r.stops.length + ' przystanków';
+  return String(r.km).replace('.', ',') + t(' km · ok. ') + r.minutes + t(' min · ') + r.stops.length + t(' przystanków');
 }
 function renderRoutesList(){
-  $('routes-kicker').textContent = 'Trasy spacerowe';
-  $('routes-title').textContent = 'Wybierz trasę';
+  $('routes-kicker').textContent = t('Trasy spacerowe');
+  $('routes-title').textContent = t('Wybierz trasę');
   routesBody.innerHTML = '<ul class="route-cards">' + ROUTES.map(function(r){
     return '<li><button data-route="' + r.id + '" style="--rc:' + r.color + '">' +
       '<span class="rc-bar" aria-hidden="true"></span><span class="rc-text"><b>' + esc(r.name) + '</b>' +
@@ -38,7 +38,7 @@ function gmapsUrl(r){
     (mid.length ? '&waypoints=' + encodeURIComponent(mid.join('|')) : '');
 }
 function renderRouteDetail(r){
-  $('routes-kicker').textContent = 'Trasa spacerowa';
+  $('routes-kicker').textContent = t('Trasa spacerowa');
   $('routes-title').textContent = r.name;
   var stopsHTML = r.stops.map(function(o, i){
     var rec = recordByOrig[o];
@@ -48,7 +48,7 @@ function renderRouteDetail(r){
   var extrasHTML = r.extras.map(function(o){
     var rec = recordByOrig[o];
     if (!rec) return '';
-    var sub = rec.place ? rec.place.address + ' · poza trasą' : (rec.item.locationDesc || '') + ' · bez dokładnej lokalizacji';
+    var sub = rec.place ? rec.place.address + t(' · poza trasą') : (rec.item.locationDesc || '') + t(' · bez dokładnej lokalizacji');
     return '<li><button data-orig="' + o + '"><span class="ind' + (rec.place ? '' : ' off') + '" aria-hidden="true"></span><span>' + esc(rec.item.name) +
       '<small>' + esc(sub) + '</small></span></button></li>';
   }).join('');
@@ -56,14 +56,15 @@ function renderRouteDetail(r){
     '<div class="route-head" style="--rc:' + r.color + '"><span class="rc-bar" aria-hidden="true"></span><div><div class="route-meta">' + routeMeta(r) + '</div>' +
     '<p class="desc">' + esc(r.desc) + '</p></div></div>' +
     '<div class="route-actions">' +
-      '<button class="btn primary" id="route-start">Zacznij od przystanku 1</button>' +
-      '<a class="btn" href="' + esc(gmapsUrl(r)) + '" target="_blank" rel="noopener">Nawiguj w Google Maps</a>' +
-      '<button class="btn" id="route-locate" aria-pressed="' + String(!!geoWatch) + '">' + (geoWatch ? 'Ukryj moją pozycję' : 'Gdzie jestem?') + '</button>' +
+      '<button class="btn primary" id="route-start">' + t('Zacznij od przystanku 1') + '</button>' +
+      '<a class="btn" href="' + esc(gmapsUrl(r)) + '" target="_blank" rel="noopener">' + t('Nawiguj w Google Maps') + '</a>' +
+      '<button class="btn" id="route-locate" aria-pressed="' + String(!!geoWatch) + '">' + (geoWatch ? t('Ukryj moją pozycję') : t('Gdzie jestem?')) + '</button>' +
     '</div>' +
     transitRouteHTML(r) +
-    '<div><div class="section-label">Przystanki</div><ol class="stops">' + stopsHTML + '</ol></div>' +
-    (extrasHTML ? '<div><div class="section-label">Powiązane miejsca</div><ul class="sibs extras">' + extrasHTML + '</ul></div>' : '') +
-    '<div class="route-foot"><button class="btn" id="route-all">← Wszystkie trasy</button><button class="btn" id="route-end">Zakończ trasę</button></div>' +
+    '<div><div class="section-label">' + t('Przystanki') + '</div><ol class="stops">' + stopsHTML + '</ol></div>' +
+    (extrasHTML ? '<div><div class="section-label">' + t('Powiązane miejsca') + '</div><ul class="sibs extras">' + extrasHTML + '</ul></div>' : '') +
+    '<div class="route-foot"><button class="btn" id="route-all">' + t('← Wszystkie trasy') + '</button><button class="btn" id="route-print">' + t('Drukuj trasę') + '</button><button class="btn" id="route-end">' + t('Zakończ trasę') + '</button></div>' +
+    '<p class="print-only">' + t('Mapa z trasą: ') + '' + esc(location.origin + location.pathname + '#t=' + r.id) + '</p>' +
     '</div>';
 }
 function drawRoute(r){
@@ -82,7 +83,7 @@ function drawRoute(r){
       pane: 'routeStops', ariaLabel: label + '. ' + routeStopName(r, g.from),
       icon: L.divIcon({ className: '', html: '<div class="stop-num" style="background:' + r.color + '">' + label + '</div>', iconSize: [30,30], iconAnchor: [15,15] })
     });
-    m.bindTooltip(esc(routeStopName(r, g.from)) + (g.to > g.from ? ' i in.' : ''), { className: 'tt', direction: 'top', offset: [0, -16] });
+    m.bindTooltip(esc(routeStopName(r, g.from)) + (g.to > g.from ? t(' i in.') : ''), { className: 'tt', direction: 'top', offset: [0, -16] });
     m.on('click', function(){ openStop(g.from); });
     m.addTo(routeLayer);
   });
@@ -137,13 +138,13 @@ function openStop(i){
 function seqBarHTML(attr, color, title, label, i, n){
   return '<div class="route-bar" style="--rc:' + color + '">' +
     '<button class="rb-list" data-' + attr + '="list"><span class="num" style="background:' + color + '">' + (i + 1) + '</span>' +
-    '<span><small>' + esc(title) + '</small>' + label + ' ' + (i + 1) + ' z ' + n + '</span></button>' +
+    '<span><small>' + esc(title) + '</small>' + label + ' ' + (i + 1) + t(' z ') + n + '</span></button>' +
     '<button class="icon-btn" data-' + attr + '="prev" aria-label="Poprzedni"' + (i === 0 ? ' disabled' : '') + '>‹</button>' +
     '<button class="icon-btn" data-' + attr + '="next" aria-label="Następny"' + (i === n - 1 ? ' disabled' : '') + '>›</button>' +
     '</div>';
 }
 function routeBarHTML(i){
-  return seqBarHTML('rb', activeRoute.color, activeRoute.name, 'Przystanek', i, activeRoute.stops.length) +
+  return seqBarHTML('rb', activeRoute.color, activeRoute.name, t('Przystanek'), i, activeRoute.stops.length) +
     (geoWatch != null ? '<div class="rb-dist" data-rb-dist></div>' : '');
 }
 panel.addEventListener('click', function(e){
@@ -163,6 +164,7 @@ routesBody.addEventListener('click', function(e){
   else if (t.id === 'route-all'){ endRoute(); showSheet(routesSheet); }
   else if (t.id === 'route-end'){ endRoute(); routesSheet.classList.remove('open'); syncBodyState(); }
   else if (t.id === 'route-locate') toggleLocate(t);
+  else if (t.id === 'route-print'){ document.body.classList.add('print-route'); window.print(); }
 });
 $('close-routes').addEventListener('click', function(){ routesSheet.classList.remove('open'); syncBodyState(); });
 
@@ -188,23 +190,23 @@ function onRouteFix(ll, accuracy){
   if (!best) return;
   routeNav.hidden = false;
   routeNav.innerHTML = '<span class="num" style="background:' + r.color + '">' + (best.i + 1) + '</span><span class="grow"><b>' + esc(best.name) + '</b><small>' +
-    (best.d < 40 ? 'jesteś na miejscu' : fmtDist(best.d) + ' do najbliższego przystanku') + '</small></span>';
+    (best.d < 40 ? t('jesteś na miejscu') : fmtDist(best.d) + t(' do najbliższego przystanku')) + '</small></span>';
   routeNav.dataset.stop = best.i;
   // Within 40 m (and a usable fix): open the stop's card once per stop per walk
   var key = r.id + ':' + best.i;
   if (best.d < 40 && accuracy < 80 && !visitedStops[key] && !(current && current.routeStop === best.i)){
     visitedStops[key] = true;
     openStop(best.i);
-    showToast('Jesteś przy przystanku ' + (best.i + 1) + ': ' + best.name);
+    showToast(t('Jesteś przy przystanku ') + (best.i + 1) + ': ' + best.name);
   }
   var rb = panel.querySelector('[data-rb-dist]');
-  if (rb) rb.textContent = (current && current.routeStop === best.i && best.d < 40) ? 'Jesteś na miejscu' : fmtDist(best.d) + ' do przystanku ' + (best.i + 1) + (current && current.routeStop !== best.i ? ' (najbliższego)' : '');
+  if (rb) rb.textContent = (current && current.routeStop === best.i && best.d < 40) ? t('Jesteś na miejscu') : fmtDist(best.d) + t(' do przystanku ') + (best.i + 1) + (current && current.routeStop !== best.i ? t(' (najbliższego)') : '');
 }
 routeNav.addEventListener('click', function(){ if (activeRoute && routeNav.dataset.stop != null) openStop(parseInt(routeNav.dataset.stop, 10)); });
 function hideRouteNav(){ routeNav.hidden = true; routeNav.innerHTML = ''; }
 function toggleLocate(btn){
   if (geoWatch != null){ stopLocate(); }
-  else if (!navigator.geolocation){ showToast('Ta przeglądarka nie udostępnia lokalizacji.'); }
+  else if (!navigator.geolocation){ showToast(t('Ta przeglądarka nie udostępnia lokalizacji.')); }
   else {
     geoFirst = true;
     geoWatch = navigator.geolocation.watchPosition(function(pos){
@@ -216,17 +218,17 @@ function toggleLocate(btn){
       if (activeRoute) onRouteFix(ll, pos.coords.accuracy);
       if (geoFirst){
         geoFirst = false;
-        if (allBounds.pad(0.5).contains(ll)) map.panTo(ll); else showToast('Jesteś poza Żbikowem — pozycja jest na mapie, ale daleko od tras.');
+        if (allBounds.pad(0.5).contains(ll)) map.panTo(ll); else showToast(t('Jesteś poza Żbikowem — pozycja jest na mapie, ale daleko od tras.'));
       }
     }, function(err){
       // Only a denial ends the watch; "unavailable" and "timeout" are passing and the next fix still arrives
       if (err.code === 1){
-        showToast('Brak zgody na lokalizację — włącz ją w ustawieniach przeglądarki.');
+        showToast(t('Brak zgody na lokalizację — włącz ją w ustawieniach przeglądarki.'));
         stopLocate();
         if (activeRoute){ var y = routesBody.scrollTop; renderRouteDetail(activeRoute); routesBody.scrollTop = y; }
-      } else if (!geoMarker) showToast('Nie udało się jeszcze ustalić pozycji — próbuję dalej.');
+      } else if (!geoMarker) showToast(t('Nie udało się jeszcze ustalić pozycji — próbuję dalej.'));
     }, { enableHighAccuracy: true, maximumAge: 10000 });
   }
-  if (btn){ btn.setAttribute('aria-pressed', String(geoWatch != null)); btn.textContent = geoWatch != null ? 'Ukryj moją pozycję' : 'Gdzie jestem?'; }
+  if (btn){ btn.setAttribute('aria-pressed', String(geoWatch != null)); btn.textContent = geoWatch != null ? t('Ukryj moją pozycję') : t('Gdzie jestem?'); }
 }
 renderRoutesList();

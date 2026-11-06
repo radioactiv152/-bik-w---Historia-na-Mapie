@@ -6,7 +6,7 @@
 var initMarkerIcon = L.Marker.prototype._initIcon;
 L.Marker.prototype._initIcon = function(){
   initMarkerIcon.call(this);
-  var label = this.options.ariaLabel || (this.getChildCount ? 'Skupisko punktów: ' + this.getChildCount() : '');   // getChildCount: a markercluster group
+  var label = this.options.ariaLabel || (this.getChildCount ? t('Skupisko punktów: ') + this.getChildCount() : '');   // getChildCount: a markercluster group
   if (label && this._icon) this._icon.setAttribute('aria-label', label);
 };
 // Leaflet only turns Enter into a click for markers with a popup; ours open cards instead
@@ -98,6 +98,7 @@ styleMenu.addEventListener('click', function(e){
   if (b.dataset.map) setMapStyle(b.dataset.map);
   if (b.dataset.theme) setTheme(b.dataset.theme);
   if (b.dataset.text) setTextSize(b.dataset.text);
+  if (b.dataset.lang && b.dataset.lang !== LANG){ store('zbikow-lang', b.dataset.lang); location.reload(); }
 });
 document.addEventListener('click', function(){ toggleStyleMenu(false); });
 // Esc with the menu open closes only the menu (registered first, so it can stop the sheet handler below)
@@ -140,7 +141,7 @@ function set1944(on){
   $('opacity-ctrl').classList.toggle('show', on);
   $('ov-btn').setAttribute('aria-pressed', String(on));
   btn1944.setAttribute('aria-pressed', String(on));
-  btn1944.querySelector('span').textContent = on ? 'Wróć do mapy współczesnej' : 'Zobacz na zdjęciu z 1944';
+  btn1944.querySelector('span').textContent = on ? t('Wróć do mapy współczesnej') : t('Zobacz na zdjęciu z 1944');
 }
 
 $('ov-btn').addEventListener('click', function(e){

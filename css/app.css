@@ -527,6 +527,21 @@ button.ln[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1p
 .qr-url{margin:0;font-size:12px;color:var(--muted);word-break:break-all;text-align:center}
 .qr-hint{margin:0;font-size:13px;line-height:1.5;text-align:center;color:var(--muted)}
 .qr-body .actions{width:100%;padding:6px 0 0;border:none}
+/* Print: a walking route as a plain list (name, description, stops, link to the map) */
+.print-only{display:none}
+.report{margin:14px 0 0;font-size:12.5px}
+.report a{color:var(--muted)}
+@media print{
+  @page{margin:15mm}
+  body.print-route{background:#fff;color:#000}
+  body.print-route header,body.print-route .skip-link,body.print-route main > *:not(#routes-sheet),body.print-route dialog{display:none !important}
+  body.print-route #routes-sheet{position:static;transform:none;visibility:visible;width:auto;height:auto;border:none;box-shadow:none;background:#fff;color:#000;display:block}
+  body.print-route #routes-sheet .sheet-head button,body.print-route .route-actions,body.print-route .route-foot,body.print-route .bus-block,body.print-route .grabber,body.print-route .stops .dist{display:none !important}
+  body.print-route .print-only{display:block;font-size:11px;color:#333;word-break:break-all}
+  body.print-route .stops button{color:#000;padding:6px 0}
+  body.print-route .stops small,body.print-route .rc-text span,body.print-route .desc{color:#333}
+  body.print-route .stops .num{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 /* Print: the QR dialog alone, black on white */
 @media print{
   body.print-qr #app,body.print-qr dialog:not(#qr){display:none !important}
@@ -655,6 +670,16 @@ dialog::backdrop{background:rgba(8,24,29,0.6);backdrop-filter:blur(2px)}
   .seg-btn .lg{display:none}
   .seg-btn .sh{display:inline}
   .bottom-bar{gap:6px;bottom:calc(8px + env(safe-area-inset-bottom))}
+  /* next to the side sheet there is ~350 px: the view bar becomes a 7-column grid and the style pill loses its labels */
+  body.panel-open .bottom-bar{left:6px}
+  body.panel-open .seg.pill{width:100%;max-width:none;display:grid;grid-template-columns:repeat(7,1fr);gap:1px;padding:3px}
+  body.panel-open .seg.pill .sep{display:none}
+  body.panel-open .seg.pill .seg-btn{padding:6px 1px;font-size:11px;line-height:1.1;white-space:normal;text-transform:none;min-height:40px}
+  body.panel-open .basemap-toggle{max-width:calc(100vw - min(400px,52vw) - 20px)}
+  body.panel-open .basemap-toggle .pill{gap:0;padding:3px}
+  body.panel-open .basemap-toggle .pill button,body.panel-open .basemap-toggle .pill .style-btn{padding:7px 7px;min-height:36px}
+  body.panel-open .style-btn #style-name{display:none}
+  body.panel-open .pill .sep{margin:4px 0}
 }
 @media (max-width: 480px){
   /* keep the bar above the attribution line, however many lines it wraps to (--attr-h set in JS) */

@@ -7,17 +7,17 @@ var pinSvg = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke
 function confBadge(conf){
   if (!conf) return '';
   var n = norm(conf), cls = n.indexOf('wysoka') === 0 ? 'conf-wysoka' : n.indexOf('srednia') === 0 ? 'conf-srednia' : n.indexOf('niska') === 0 ? 'conf-niska' : '';
-  return '<span class="badge ' + cls + '" title="Pewność informacji"><span class="dot"></span>Pewność: ' + esc(conf) + '</span>';
+  return '<span class="badge ' + cls + '" title="' + t('Pewność informacji') + '"><span class="dot"></span>' + t('Pewność: ') + esc(t(conf)) + '</span>';
 }
 function factsBlock(item, sources, extra){
   var rows = '';
   (extra || []).forEach(function(f){ if (f[1]) rows += '<dt>' + esc(f[0]) + '</dt><dd>' + esc(f[1]) + '</dd>'; });
-  if (item.dating) rows += '<dt>Datowanie</dt><dd>' + esc(item.dating) + '</dd>';
-  if (item.source) rows += '<dt>Źródło</dt><dd>' + esc(item.source) + '</dd>';
-  if (sources && sources.length) rows += '<dt>Źródła</dt><dd>' + sources.map(function(s){
+  if (item.dating) rows += '<dt>' + t('Datowanie') + '</dt><dd>' + esc(item.dating) + '</dd>';
+  if (item.source) rows += '<dt>' + t('Źródło') + '</dt><dd>' + esc(item.source) + '</dd>';
+  if (sources && sources.length) rows += '<dt>' + t('Źródła') + '</dt><dd>' + sources.map(function(s){
     return s.url ? '<a href="' + esc(s.url) + '" target="_blank" rel="noopener" title="' + esc(s.name || s.url) + '">' + esc(s.name || s.url) + '</a>' : esc(s.name);
   }).join('<br>') + '</dd>';
-  if (item.level) rows += '<dt>Lokalizacja</dt><dd>' + esc(item.level) + '</dd>';
+  if (item.level) rows += '<dt>' + t('Lokalizacja') + '</dt><dd>' + esc(item.level) + '</dd>';
   return rows ? '<dl class="facts">' + rows + '</dl>' : '';
 }
 function notesBlock(item){
@@ -26,12 +26,12 @@ function notesBlock(item){
   var inner = '';
   if (item.note) inner += '<div class="note">' + esc(item.note) + '</div>';
   if (item.mapNote) inner += '<div class="note">' + esc(item.mapNote) + '</div>';
-  if (inner) out += '<details class="notes"><summary>Uwagi do źródeł i lokalizacji</summary><div class="notes-body">' + inner + '</div></details>';
+  if (inner) out += '<details class="notes"><summary>' + t('Uwagi do źródeł i lokalizacji') + '</summary><div class="notes-body">' + inner + '</div></details>';
   return out;
 }
 function siblingsBlock(place, orig){
   if (!place || !place.isGroup) return '';
-  return '<div><div class="section-label">Pod tym samym adresem (' + place.members.length + ')</div><ul class="sibs">' +
+  return '<div><div class="section-label">' + t('Pod tym samym adresem') + ' (' + place.members.length + ')</div><ul class="sibs">' +
     place.members.map(function(m){
       var cur = m.origId === orig;
       return '<li><button data-orig="' + m.origId + '"' + (cur ? ' aria-current="true"' : '') + '>' +
@@ -61,8 +61,8 @@ function galleryBlock(orig, list){
 }
 // "ARTEFAKTY" / "CO TU PRODUKOWANO" highlighted links (data: data/artifacts.js).
 var FEAT_KINDS = {
-  artefakt: { label: 'Artefakty', cls: 'art', icon: '◆' },
-  produkcja: { label: 'Co tu produkowano', cls: 'prod', icon: '⚙' }
+  artefakt: { label: t('Artefakty'), cls: 'art', icon: '◆' },
+  produkcja: { label: t('Co tu produkowano'), cls: 'prod', icon: '⚙' }
 };
 function featItems(orig, kind){
   return (ARTIFACTS[orig] || []).filter(function(a){ return (a.kind || 'artefakt') === kind; });
@@ -90,16 +90,24 @@ function renderRecordHTML(item, place, opts){
       '<div>' +
         '<h2 class="display title" id="panel-title">' + esc(item.name) + '</h2>' +
         (address ? '<div class="addr">' + pinSvg + '<span>' + esc(address) + '</span></div>'
-                 : (item.locationDesc ? '<div class="addr">' + pinSvg + '<span>' + esc(item.locationDesc) + (opts.hasPoint ? '' : ' <span class="flag">brak punktu na mapie</span>') + '</span></div>' : '')) +
+                 : (item.locationDesc ? '<div class="addr">' + pinSvg + '<span>' + esc(item.locationDesc) + (opts.hasPoint ? '' : ' <span class="flag">' + t('brak punktu na mapie') + '</span>') + '</span></div>' : '')) +
       '</div>' +
       featBlock(item.origId) +
       factsBlock(item, opts.sources, opts.facts) +
       ((opts.approx || item.approx || (place && place.approx)) ? '<div class="note approx">' + esc(opts.approx || item.approx || place.approx) + '</div>' : '') +
       (item.shortDesc ? '<p class="desc">' + esc(item.shortDesc) + '</p>' : '') +
       notesBlock(item) +
-      (opts.modernLink != null ? '<button class="btn" data-modern="' + opts.modernLink + '">Pokaż to miejsce na mapie współczesnej</button>' : '') +
+      (opts.modernLink != null ? '<button class="btn" data-modern="' + opts.modernLink + '">' + t('Pokaż to miejsce na mapie współczesnej') + '</button>' : '') +
       (opts.noSiblings ? '' : siblingsBlock(place, item.origId)) +
+      reportLink(item.name, opts.facts && opts.facts.length ? 'wydarzenie ' + (opts.facts[opts.facts.length - 1][1] || '') : 'rekord ' + item.origId) +
     '</div>';
+}
+// "Report a mistake": a prefilled issue in the project's repository (no e-mail address on the page)
+var REPO_URL = 'https://github.com/radioactiv152/-bik-w---Historia-na-Mapie';
+function reportLink(name, ident){
+  var title = 'Uwaga do: ' + name + ' (' + ident + ')';
+  var body = 'Miejsce: ' + name + '\nIdentyfikator: ' + ident + '\nLink: ' + location.href + '\n\nCo jest nie tak albo co dopisać:\n';
+  return '<p class="report"><a href="' + REPO_URL + '/issues/new?title=' + encodeURIComponent(title) + '&body=' + encodeURIComponent(body) + '" target="_blank" rel="noopener">' + t('Zgłoś błąd lub uzupełnienie do tego miejsca') + '</a></p>';
 }
 
 var current = null; // { rec }
@@ -151,7 +159,7 @@ function openRecord(orig, routeStop){
   if (!r) return false;
   if (mode !== 'modern') setMode('modern', true);
   var p = r.place;
-  $('panel-kicker').textContent = !p ? 'Bez punktu na mapie' : p.isGroup ? (p.groupName || 'Adres z kilkoma obiektami') : 'Karta miejsca';
+  $('panel-kicker').textContent = !p ? t('Bez punktu na mapie') : p.isGroup ? (p.groupName || t('Adres z kilkoma obiektami')) : t('Karta miejsca');
   if (routeStop == null && activeRoute){ var si = activeRoute.stops.indexOf(orig); if (si !== -1) routeStop = si; }
   galleryLists = [];
   panelBody.innerHTML = (activeRoute && routeStop != null ? routeBarHTML(routeStop) : '') + renderRecordHTML(r.item, p);
@@ -254,7 +262,7 @@ function renderCarousel(){
 function openCarousel(slides, start, kicker){
   if (!slides || !slides.length) return;
   czSlides = slides; czIndex = Math.max(0, Math.min(start || 0, slides.length - 1));
-  $('cz-kicker').textContent = kicker || 'Zdjęcia';
+  $('cz-kicker').textContent = kicker || t('Zdjęcia');
   renderCarousel();
   if (cz.showModal){ if (!cz.open) cz.showModal(); } else cz.setAttribute('open', '');
 }
@@ -339,7 +347,7 @@ function readHash(){
 window.addEventListener('hashchange', function(){ if (!hashLock && !readHash() && !location.hash) closeSheets(); });
 
 function copyLink(url){
-  function done(){ showToast('Link do tego miejsca skopiowany.'); }
+  function done(){ showToast(t('Link do tego miejsca skopiowany.')); }
   if (navigator.clipboard && window.isSecureContext){
     navigator.clipboard.writeText(url).then(done, function(){ showToast(url); });
   } else { showToast(url); }
@@ -347,7 +355,7 @@ function copyLink(url){
 function shareTitle(){ var t = $('panel-title'); return (t ? t.textContent.trim() + ' — ' : '') + 'Żbików: Historia na mapie'; }
 // Phones get the system share sheet; elsewhere the link goes to the clipboard
 var canShare = !!(navigator.share && window.isSecureContext);
-if (canShare) $('btn-share-label').textContent = 'Udostępnij';
+if (canShare) $('btn-share-label').textContent = t('Udostępnij');
 $('btn-share').addEventListener('click', function(){
   var url = location.href;
   if (canShare) navigator.share({ title: shareTitle(), text: shareTitle(), url: url }).catch(function(e){ if (e && e.name !== 'AbortError') copyLink(url); });
@@ -356,7 +364,7 @@ $('btn-share').addEventListener('click', function(){
 // QR code of the current link, for printing (e.g. a plaque by the building)
 var qrDlg = $('qr');
 $('btn-qr').addEventListener('click', function(){
-  if (typeof qrcode !== 'function'){ showToast('Generator kodów QR jeszcze się ładuje — spróbuj za chwilę.'); return; }
+  if (typeof qrcode !== 'function'){ showToast(t('Generator kodów QR jeszcze się ładuje — spróbuj za chwilę.')); return; }
   var url = location.href, q = qrcode(0, 'M');
   q.addData(url); q.make();
   $('qr-box').innerHTML = q.createSvgTag({ cellSize: 6, margin: 4, scalable: true });

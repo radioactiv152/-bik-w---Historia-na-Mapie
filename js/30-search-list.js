@@ -40,8 +40,8 @@ function renderResults(){
   kbIndex = matches.length ? 0 : -1;
   searchResults.innerHTML = matches.length ? matches.map(function(m, i){
     return '<button class="search-item' + (i === 0 ? ' kb' : '') + '" role="option" id="sr-' + i + '" data-i="' + i + '">' + highlight(m.label, q) +
-      '<small>' + esc([m.sub, m.type].filter(Boolean).join(' · ')) + (m.mapped ? '' : ' <span class="flag">bez punktu</span>') + '</small></button>';
-  }).join('') : '<div class="search-empty">Brak wyników dla „' + esc(searchInput.value.trim()) + '”.</div>';
+      '<small>' + esc([m.sub, m.type].filter(Boolean).join(' · ')) + (m.mapped ? '' : ' <span class="flag">' + t('bez punktu') + '</span>') + '</small></button>';
+  }).join('') : '<div class="search-empty">' + t('Brak wyników dla „') + '' + esc(searchInput.value.trim()) + '”.</div>';
   searchResults.classList.add('open');
   searchInput.setAttribute('aria-expanded', 'true');
   if (matches.length) searchInput.setAttribute('aria-activedescendant', 'sr-0'); else searchInput.removeAttribute('aria-activedescendant');
@@ -110,10 +110,10 @@ function renderList(){
     var first = m.key.charAt(0).toLocaleUpperCase('pl');
     if (first !== lastLetter && !q){ html += '<li class="letter" aria-hidden="true">' + esc(first) + '</li>'; lastLetter = first; }
     html += '<li><button data-orig="' + m.orig + '"><span class="ind' + (m.mapped ? '' : ' off') + '" aria-hidden="true"></span><span>' + esc(m.label) + (m.photo ? camSvg : '') +
-      '<small>' + esc(m.sub) + (m.mapped ? '' : ' · bez punktu na mapie') + '</small></span></button></li>';
+      '<small>' + esc(m.sub) + (m.mapped ? '' : t(' · bez punktu na mapie')) + '</small></span></button></li>';
   });
-  placesUl.innerHTML = html || '<li class="list-empty">Nic nie pasuje do filtra.</li>';
-  $('list-count').textContent = rows.length === totalAll ? totalAll + ' obiektów · ' + totalMapped + ' na mapie' : rows.length + ' z ' + totalAll + ' obiektów';
+  placesUl.innerHTML = html || '<li class="list-empty">' + t('Nic nie pasuje do filtra.') + '</li>';
+  $('list-count').textContent = rows.length === totalAll ? totalAll + t(' obiektów · ') + totalMapped + t(' na mapie') : rows.length + t(' z ') + totalAll + t(' obiektów');
 }
 renderList();
 $('list-filter').addEventListener('input', renderList);

@@ -2,15 +2,15 @@
  * Pliki js/ ładują się po kolei i dzielą jeden zakres globalny (kolejność ma znaczenie). */
 // --- Okolica (data/poi.js from OpenStreetMap, tools/import_poi.py) ---
 var POI_CAT = {
-  kultura: { color: '#8E44AD', icon: '🏛', label: 'Kultura' },
-  kawiarnie: { color: '#A0522D', icon: '☕', label: 'Kawiarnie' },
-  spozywcze: { color: '#2E8B57', icon: '🛒', label: 'Sklepy spożywcze' },
-  paliwo: { color: '#C0392B', icon: '⛽', label: 'Stacje paliw' },
-  apteki: { color: '#16A085', icon: '✚', label: 'Apteki' }
+  kultura: { color: '#8E44AD', icon: '🏛', label: t('Kultura') },
+  kawiarnie: { color: '#A0522D', icon: '☕', label: t('Kawiarnie') },
+  spozywcze: { color: '#2E8B57', icon: '🛒', label: t('Sklepy spożywcze') },
+  paliwo: { color: '#C0392B', icon: '⛽', label: t('Stacje paliw') },
+  apteki: { color: '#16A085', icon: '✚', label: t('Apteki') }
 };
 var nearBody = $('near-body'), poiLayer = L.layerGroup(), poiMarkers = {}, poiById = {};
 var nearState = { cat: 'kultura', openOnly: false, from: null };
-var DAYS_PL = ['poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota', 'niedziela'];
+var DAYS_PL = [t('poniedziałek'), t('wtorek'), t('środa'), t('czwartek'), t('piątek'), t('sobota'), t('niedziela')];
 // Opening state from the weekly plan baked by the importer (minutes, Monday first; PH = Polish holidays).
 // Grocery shops without explicit holiday (PH) hours in OSM: Polish law closes them on public holidays,
 // so the weekday plan must not be assumed. Pharmacies, stations and cafés keep the weekday fallback.
@@ -20,22 +20,22 @@ function dayPlan(p, dt){
   return p.h.w[(dt.getDay() + 6) % 7];
 }
 function ohState(p, now){
-  if (!p.h) return { k: 'unk', t: p.oh ? 'godziny: ' + p.oh : 'brak godzin w OSM' };
+  if (!p.h) return { k: 'unk', t: p.oh ? t('godziny: ') + p.oh : t('brak godzin w OSM') };
   now = now || warsawNow();
   var m = now.getHours() * 60 + now.getMinutes(), today = dayPlan(p, now) || [];
   var y = addDays(now, -1), yest = dayPlan(p, y) || [];
-  for (var i = 0; i < yest.length; i++) if (yest[i][1] > 1440 && m + 1440 < yest[i][1]) return { k: 'open', t: 'otwarte do ' + hmEnd(yest[i][1]) };
+  for (var i = 0; i < yest.length; i++) if (yest[i][1] > 1440 && m + 1440 < yest[i][1]) return { k: 'open', t: t('otwarte do ') + hmEnd(yest[i][1]) };
   for (i = 0; i < today.length; i++) if (m >= today[i][0] && m < today[i][1]) {
-    if (today[i][0] === 0 && today[i][1] >= 1440) return { k: 'open', t: 'otwarte całą dobę' };
-    return { k: 'open', t: 'otwarte do ' + hmEnd(today[i][1]) + (today[i][1] - m <= 30 ? ' (zaraz zamykają)' : '') };
+    if (today[i][0] === 0 && today[i][1] >= 1440) return { k: 'open', t: t('otwarte całą dobę') };
+    return { k: 'open', t: t('otwarte do ') + hmEnd(today[i][1]) + (today[i][1] - m <= 30 ? t(' (zaraz zamykają)') : '') };
   }
-  if (isHoliday(now) && !p.h.ph && p.c === 'spozywcze') return { k: 'closed', t: 'święto · sklep zamknięty (brak godzin świątecznych w OSM)' };
-  for (i = 0; i < today.length; i++) if (today[i][0] > m) return { k: 'closed', t: 'zamknięte · otwierają o ' + hm(today[i][0]) };
+  if (isHoliday(now) && !p.h.ph && p.c === 'spozywcze') return { k: 'closed', t: t('święto · sklep zamknięty (brak godzin świątecznych w OSM)') };
+  for (i = 0; i < today.length; i++) if (today[i][0] > m) return { k: 'closed', t: t('zamknięte · otwierają o ') + hm(today[i][0]) };
   for (var d = 1; d <= 7; d++){
     var dt = addDays(now, d), pl = dayPlan(p, dt) || [];
-    if (pl.length) return { k: 'closed', t: 'zamknięte · otwierają ' + (d === 1 ? 'jutro' : DAYS_PL[(dt.getDay() + 6) % 7]) + ' o ' + hm(pl[0][0]) };
+    if (pl.length) return { k: 'closed', t: t('zamknięte · otwierają ') + (d === 1 ? t('jutro') : DAYS_PL[(dt.getDay() + 6) % 7]) + t(' o ') + hm(pl[0][0]) };
   }
-  return { k: 'closed', t: 'zamknięte' };
+  return { k: 'closed', t: t('zamknięte') };
 }
 function poiIcon(p, st){
   var c = POI_CAT[p.c];
@@ -92,18 +92,18 @@ function renderNear(){
     .sort(function(a, b){ return (a.st.k === 'open' ? 0 : 1) - (b.st.k === 'open' ? 0 : 1) || a.d - b.d; });
   var quick = ['spozywcze', 'paliwo', 'apteki', 'kawiarnie'].map(function(c){
     var b = nearestOpen(c), cc = POI_CAT[c];
-    return '<button data-nearest="' + c + '"' + (b ? '' : ' disabled') + '><span>' + cc.icon + ' ' + (c === 'spozywcze' ? 'Najbliższy otwarty sklep' : c === 'paliwo' ? 'Najbliższa stacja' : c === 'apteki' ? 'Najbliższa apteka' : 'Najbliższa kawiarnia') + '</span>' +
-      '<small>' + (b ? esc(b.p.n) + ' · ' + fmtDist(b.d) : 'teraz nic otwartego (wg OSM)') + '</small></button>';
+    return '<button data-nearest="' + c + '"' + (b ? '' : ' disabled') + '><span>' + cc.icon + ' ' + (c === 'spozywcze' ? t('Najbliższy otwarty sklep') : c === 'paliwo' ? t('Najbliższa stacja') : c === 'apteki' ? t('Najbliższa apteka') : t('Najbliższa kawiarnia')) + '</span>' +
+      '<small>' + (b ? esc(b.p.n) + ' · ' + fmtDist(b.d) : t('teraz nic otwartego (wg OSM)')) + '</small></button>';
   }).join('');
-  var fromLabel = nearState.from ? 'od Twojej pozycji' : geoMarker ? 'od Twojej pozycji' : 'od środka mapy';
+  var fromLabel = nearState.from ? t('od Twojej pozycji') : geoMarker ? t('od Twojej pozycji') : t('od środka mapy');
   nearBody.innerHTML = '<div class="panel-inner">' +
     '<div class="near-quick">' + quick + '</div>' +
     '<div class="near-cats" role="group" aria-label="Kategoria">' + Object.keys(POI_CAT).map(function(c){
       var cc = POI_CAT[c];
       return '<button data-cat="' + c + '" style="--pc:' + cc.color + '" aria-pressed="' + String(nearState.cat === c) + '">' + cc.icon + ' ' + cc.label + ' <small>' + (counts[c] || 0) + '</small></button>';
     }).join('') + '</div>' +
-    '<div class="near-tools"><label><input type="checkbox" id="near-open"' + (nearState.openOnly ? ' checked' : '') + '> tylko otwarte teraz</label>' +
-      '<button class="btn" id="near-me" style="margin-left:auto">' + (nearState.from || geoMarker ? 'Odśwież moją pozycję' : 'Szukaj od mojej pozycji') + '</button></div>' +
+    '<div class="near-tools"><label><input type="checkbox" id="near-open"' + (nearState.openOnly ? ' checked' : '') + '> ' + t('tylko otwarte teraz') + '</label>' +
+      '<button class="btn" id="near-me" style="margin-left:auto">' + (nearState.from || geoMarker ? t('Odśwież moją pozycję') : t('Szukaj od mojej pozycji')) + '</button></div>' +
     '<div><div class="section-label">' + esc(POI_CAT[nearState.cat].label) + ' · ' + list.length + ' · odległość ' + fromLabel + '</div>' +
       (list.length ? '<ul class="near-list">' + list.map(function(x){
         var p = x.p;
@@ -162,23 +162,23 @@ function openPoi(id){
   if (!poiLayer.hasLayer(poiMarkers[id])) poiLayer.addLayer(poiMarkers[id]);
   var st = ohState(p), now = warsawNow(), cc = POI_CAT[p.c];
   var phToday = isHoliday(now) && !!(p.h && p.h.ph), ti = phToday ? -1 : (now.getDay() + 6) % 7;
-  function ivText(iv){ return iv.length ? iv.map(function(x){ return hm(x[0]) + '–' + hmEnd(x[1]); }).join(', ') : 'zamknięte'; }
+  function ivText(iv){ return iv.length ? iv.map(function(x){ return hm(x[0]) + '–' + hmEnd(x[1]); }).join(', ') : t('zamknięte'); }
   var table = p.h ? '<div class="oh-table">' + DAYS_PL.map(function(dn, i){
     return '<span' + (i === ti ? ' class="today"' : '') + '>' + dn + '</span><span' + (i === ti ? ' class="today"' : '') + '>' + ivText(p.h.w[i]) + '</span>';
-  }).join('') + (p.h.ph ? '<span' + (phToday ? ' class="today"' : '') + '>święta</span><span' + (phToday ? ' class="today"' : '') + '>' + ivText(p.h.ph) + '</span>' : '') + '</div>'
+  }).join('') + (p.h.ph ? '<span' + (phToday ? ' class="today"' : '') + '>' + t('święta') + '</span><span' + (phToday ? ' class="today"' : '') + '>' + ivText(p.h.ph) + '</span>' : '') + '</div>'
     : '<p class="bus-note">' + (p.oh ? 'Godziny w OSM: ' + esc(p.oh) : 'Brak godzin otwarcia w OpenStreetMap.') + '</p>';
   var hist = historyNear(p), histRec = hist ? (hist.isGroup ? hist.members[0] : hist) : null;
   galleryLists = [];
-  $('panel-kicker').textContent = 'Okolica · ' + cc.label;
+  $('panel-kicker').textContent = t('Okolica · ') + cc.label;
   panelBody.innerHTML = '<div class="panel-inner">' +
     '<div class="badges"><span class="badge" style="color:' + cc.color + ';filter:brightness(1.4)"><span class="dot"></span>' + esc(p.s) + '</span>' + (p.b ? '<span class="badge">' + esc(p.b) + '</span>' : '') + (p.lpg ? '<span class="badge">LPG</span>' : '') + '</div>' +
     '<div><h2 class="display title" id="panel-title">' + esc(p.n) + '</h2>' + (p.a ? '<div class="addr">' + pinSvg + '<span>' + esc(p.a) + '</span></div>' : '') + '</div>' +
     '<div class="oh ' + st.k + '" style="font-size:15px">' + esc(st.t) + '</div>' +
-    '<div><div class="section-label">Godziny otwarcia</div>' + table + '</div>' +
+    '<div><div class="section-label">' + t('Godziny otwarcia') + '</div>' + table + '</div>' +
     ((p.tel || p.www) ? '<dl class="facts">' + (p.tel ? '<dt>Telefon</dt><dd><a href="tel:' + esc(p.tel.replace(/\s/g, '')) + '">' + esc(p.tel) + '</a></dd>' : '') +
       (p.www ? '<dt>Strona</dt><dd><a href="' + esc(/^https?:/.test(p.www) ? p.www : 'https://' + p.www) + '" target="_blank" rel="noopener">' + esc(p.www.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')) + '</a></dd>' : '') + '</dl>' : '') +
-    (histRec ? '<button class="btn" data-modern="' + histRec.origId + '">Historia tego miejsca: ' + esc(hist.isGroup ? hist.groupName : histRec.name) + '</button>' : '') +
-    '<a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=' + p.lat + ',' + p.lng + '" target="_blank" rel="noopener">Nawiguj w Google Maps</a>' +
+    (histRec ? '<button class="btn" data-modern="' + histRec.origId + '">' + t('Historia tego miejsca: ') + '' + esc(hist.isGroup ? hist.groupName : histRec.name) + '</button>' : '') +
+    '<a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=' + p.lat + ',' + p.lng + '" target="_blank" rel="noopener">' + t('Nawiguj w Google Maps') + '</a>' +
     '<p class="bus-note">© autorzy <a href="https://www.openstreetmap.org/' + ({ n: 'node', w: 'way', r: 'relation' })[p.id[0]] + '/' + p.id.slice(1) + '" target="_blank" rel="noopener">OpenStreetMap</a> — widzisz błąd w godzinach? Można go poprawić w OSM.</p>' +
     '</div>';
   panelBody.scrollTop = 0;

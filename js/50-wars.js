@@ -7,7 +7,7 @@ var warBody = $('war-body');
 var warState = {};                // key -> built layer state
 var activeWarMk = null;
 
-function warType(t){ return WAR_TYPES[t] || { label: t || 'Wydarzenie', color: '#94A3B8', glyph: '•' }; }
+function warType(k){ return WAR_TYPES[k] || { label: k || t('Wydarzenie'), color: '#94A3B8', glyph: '•' }; }
 function glyphHTML(t, cls, side){
   return '<span class="' + cls + ' sym" aria-hidden="true">' + warSymbolSVG(t, side) + '</span>';
 }
@@ -26,7 +26,7 @@ function resolveEvent(ev, war){
   for (var k in base) item[k] = base[k];
   item.origId = rec ? base.origId : null;
   if (ev.title) item.name = ev.title;
-  if (!item.name) item.name = 'Wydarzenie';
+  if (!item.name) item.name = t('Wydarzenie');
   if (ev.date) item.dating = ev.date;
   if (ev.desc) item.shortDesc = ev.desc;
   if (ev.category) item.type = ev.category;
@@ -89,7 +89,7 @@ function certBadge(c){
   if (!c) return '';
   var n = norm(c), cls = n.indexOf('potwierdz') === 0 ? 'cert-pot' : n.indexOf('relacja') === 0 ? 'cert-rel' : n.indexOf('hipotez') === 0 ? 'cert-hip' : '';
   var m = /^(.*?)\s*(\(.*\))$/.exec(c);
-  return '<span class="badge ' + cls + '" title="Pewność: ' + esc(c) + '"><span class="dot"></span>' + (m ? esc(m[1]) + '<span class="cx">&nbsp;' + esc(m[2]) + '</span>' : esc(c)) + '</span>';
+  return '<span class="badge ' + cls + '" title="' + t('Pewność: ') + esc(c) + '"><span class="dot"></span>' + (m ? esc(m[1]) + '<span class="cx">&nbsp;' + esc(m[2]) + '</span>' : esc(c)) + '</span>';
 }
 // Day-by-day view: an event is active on a day when it falls inside its from–to range.
 // s.day is either a single day ('1914-10-17') or a period { from, to, i, label } (war.phases).
@@ -310,7 +310,7 @@ function stopIndex(s){
   return 0;
 }
 function stopLabel(st){
-  if (!st) return 'cały okres';
+  if (!st) return t('cały okres');
   if (typeof st !== 'string') return st.label;
   var lb = dayLabel(st); return lb.d + ' ' + lb.m + ' ' + st.slice(0, 4);
 }
@@ -323,7 +323,7 @@ function syncWarTime(){
   r.max = st.length - 1; r.value = i;
   r.setAttribute('aria-valuetext', stopLabel(st[i]));
   $('wt-cur').textContent = stopLabel(st[i]);
-  $('wt-n').textContent = s.events.filter(function(e){ return e.ll && activeOn(e, s.day) && s.filter[e.ev.type] !== false; }).length + ' na mapie · ' + i + '/' + (st.length - 1);
+  $('wt-n').textContent = s.events.filter(function(e){ return e.ll && activeOn(e, s.day) && s.filter[e.ev.type] !== false; }).length + t(' na mapie · ') + i + '/' + (st.length - 1);
   $('wt-prev').disabled = i === 0;
   $('wt-next').disabled = i === st.length - 1;
   var ticks = $('wt-ticks');
@@ -431,7 +431,7 @@ function openWarSheet(){
 }
 function renderWarSheet(s){
   var war = s.war;
-  $('war-kicker').textContent = 'Warstwa historyczna · ' + war.period;
+  $('war-kicker').textContent = t('Warstwa historyczna · ') + war.period;
   $('war-title').textContent = war.label;
   var counts = {};
   s.events.forEach(function(e){ counts[e.ev.type] = (counts[e.ev.type] || 0) + 1; });
@@ -458,7 +458,7 @@ function renderWarSheet(s){
       (line.sources && line.sources.length ? '<small>Źródła: ' + esc(line.sources.map(function(x){ return typeof x === 'string' ? x : x.name; }).join(', ')) + '</small>' : '') + '</span></li>';
   }).join('');
   var ph = s.placeholders.map(function(ev){
-    return '<li><span class="sw" aria-hidden="true"></span><span><b>' + esc(ev.title || 'Wydarzenie') + '</b><span class="todo">do uzupełnienia</span>' +
+    return '<li><span class="sw" aria-hidden="true"></span><span><b>' + esc(ev.title || t('Wydarzenie')) + '</b><span class="todo">do uzupełnienia</span>' +
       (ev.desc ? '<small>' + esc(ev.desc) + '</small>' : '') + '</span></li>';
   }).join('');
   var daysHTML = '';
@@ -466,8 +466,8 @@ function renderWarSheet(s){
     var inRange = function(c, r){ return c.sort >= r.from && c.sort <= r.to; };
     var cur = s.day && typeof s.day !== 'string' ? s.day : null;
     var notes = cur ? (war.chronicle || []).filter(function(c){ return inRange(c, cur); }) : [];
-    daysHTML = '<div><div class="section-label">Okresy · kliknij, aby pokazać na mapie</div><div class="days phases" role="group" aria-label="Wybierz okres">' +
-      '<button data-phase="" aria-pressed="' + String(!cur) + '"><small>cały</small>okres</button>' +
+    daysHTML = '<div><div class="section-label">' + t('Okresy · kliknij, aby pokazać na mapie') + '</div><div class="days phases" role="group" aria-label="Wybierz okres">' +
+      '<button data-phase="" aria-pressed="' + String(!cur) + '"><small>' + t('cały') + '</small>' + t('okres') + '</button>' +
       war.phases.map(function(ph, i){
         var n = s.events.filter(function(e){ return activeOn(e, ph); }).length;
         return '<button data-phase="' + i + '" class="has" aria-pressed="' + String(!!cur && cur.i === i) + '">' + esc(ph.label) + '<small>' + n + ' miejsc</small></button>';
@@ -479,11 +479,11 @@ function renderWarSheet(s){
   } else if (war.days){
     var chronByDay = {};
     (war.chronicle || []).forEach(function(c){ (chronByDay[c.sort] = chronByDay[c.sort] || []).push(c); });
-    daysHTML = '<div><div class="section-label">Dzień po dniu · ' + esc(war.days.label) + '</div><div class="days" role="group" aria-label="Wybierz dzień">' +
-      '<button data-day="" aria-pressed="' + String(!s.day) + '"><small>cały</small>okres</button>' +
+    daysHTML = '<div><div class="section-label">' + t('Dzień po dniu · ') + '' + esc(war.days.label) + '</div><div class="days" role="group" aria-label="Wybierz dzień">' +
+      '<button data-day="" aria-pressed="' + String(!s.day) + '"><small>' + t('cały') + '</small>' + t('okres') + '</button>' +
       dayList(war.days).map(function(d){
         var lb = dayLabel(d), has = s.events.some(function(e){ return activeOn(e, d); }) || chronByDay[d];
-        return '<button data-day="' + d + '" class="' + (has ? 'has' : '') + '" aria-pressed="' + String(s.day === d) + '"' + (has ? '' : ' disabled title="Brak wydarzeń tego dnia"') + '>' + lb.d + '<small>' + lb.m + '</small></button>';
+        return '<button data-day="' + d + '" class="' + (has ? 'has' : '') + '" aria-pressed="' + String(s.day === d) + '"' + (has ? '' : ' disabled title="' + t('Brak wydarzeń tego dnia') + '"') + '>' + lb.d + '<small>' + lb.m + '</small></button>';
       }).join('') + '</div>' +
       (s.day ? (chronByDay[s.day] || []).map(function(c){ return '<div class="day-note"><b>' + esc(c.date) + '</b>' + esc(c.text) + '</div>'; }).join('') +
         '<div class="day-note"><b>Na mapie</b>' + s.events.filter(function(e){ return activeOn(e, s.day); }).length + ' wydarzeń z tego dnia (' + s.events.filter(function(e){ return e.ll && activeOn(e, s.day); }).length + ' z punktem na mapie); linie z innych dni są wyblakłe.</div>' : '') +
@@ -503,10 +503,10 @@ function renderWarSheet(s){
     }).join('') + '</ul></details>' : '';
   warBody.innerHTML = '<div class="panel-inner">' +
     (war.intro ? '<p class="war-intro' + (s.introOpen || war.intro.length < 160 ? '' : ' clamp') + '">' + esc(war.intro) + '</p>' +
-      (war.intro.length < 160 ? '' : '<button class="intro-more" aria-expanded="' + String(!!s.introOpen) + '">' + (s.introOpen ? 'Zwiń ▴' : 'Czytaj więcej ▾') + '</button>') : '') +
+      (war.intro.length < 160 ? '' : '<button class="intro-more" aria-expanded="' + String(!!s.introOpen) + '">' + (s.introOpen ? t('Zwiń') + ' ▴' : t('Czytaj więcej') + ' ▾') + '</button>') : '') +
     daysHTML +
-    (legend ? '<div><div class="section-label">Legenda · kliknij, aby filtrować</div><div class="legend-chips">' + legend + '</div></div>' : '') +
-    '<div><div class="section-label">Oś czasu (' + shown + ')</div>' +
+    (legend ? '<div><div class="section-label">' + t('Legenda · kliknij, aby filtrować') + '</div><div class="legend-chips">' + legend + '</div></div>' : '') +
+    '<div><div class="section-label">' + t('Oś czasu (') + '' + shown + ')</div>' +
       (items ? '<ul class="timeline">' + items + '</ul>' : '<p class="list-empty">Brak wydarzeń dla wybranych filtrów.</p>') + '</div>' +
     (lines ? '<div><div class="section-label">Front i kierunki ataków</div><ul class="line-list">' + lines + '</ul></div>' : '') +
     (ph ? '<div><div class="section-label">Do uzupełnienia</div><ul class="line-list">' + ph + '</ul></div>' : '') +
@@ -542,7 +542,7 @@ warBody.addEventListener('click', function(e){
     var p = warBody.querySelector('.war-intro');
     var open = p.classList.toggle('clamp') === false;
     s.introOpen = open;
-    mb.textContent = open ? 'Zwiń ▴' : 'Czytaj więcej ▾';
+    mb.textContent = open ? t('Zwiń') + ' ▴' : t('Czytaj więcej') + ' ▾';
     mb.setAttribute('aria-expanded', String(open));
     return;
   }
@@ -568,7 +568,7 @@ function openEvent(key, i){
   var ty = warType(e.ev.type);
   galleryLists = [];
   $('panel-kicker').textContent = s.war.label + ' · ' + s.war.period;
-  panelBody.innerHTML = seqBarHTML('wb', s.war.color, s.war.label, 'Wydarzenie', i, s.events.length) +
+  panelBody.innerHTML = seqBarHTML('wb', s.war.color, s.war.label, t('Wydarzenie'), i, s.events.length) +
     renderRecordHTML(e.item, e.place, {
       photos: e.photos, approx: e.ev.approx, sources: e.sources, noSiblings: true, hasPoint: !!e.ll,
       addr: e.ev.where && e.ll ? e.ev.where : null,

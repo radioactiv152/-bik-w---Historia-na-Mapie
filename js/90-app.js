@@ -3,9 +3,9 @@
 // --- Info dialog ---
 var info = $('info');
 $('stats').innerHTML =
-  '<div class="stat"><b>' + totalAll + '</b><span>obiektów w bazie</span></div>' +
-  '<div class="stat"><b>' + totalMapped + '</b><span>z dokładnym adresem</span></div>' +
-  '<div class="stat"><b>' + PLACES.length + '</b><span>punktów na mapie</span></div>';
+  '<div class="stat"><b>' + totalAll + '</b><span>' + t('obiektów w bazie') + '</span></div>' +
+  '<div class="stat"><b>' + totalMapped + '</b><span>' + t('z dokładnym adresem') + '</span></div>' +
+  '<div class="stat"><b>' + PLACES.length + '</b><span>' + t('punktów na mapie') + '</span></div>';
 $('info-btn').addEventListener('click', function(){ if (info.showModal) info.showModal(); else info.setAttribute('open', ''); });
 $('close-info').addEventListener('click', function(){ info.close ? info.close() : info.removeAttribute('open'); });
 info.addEventListener('click', function(e){ if (e.target === info) info.close(); });
@@ -63,6 +63,8 @@ function tickClock(){
 }
 setInterval(tickClock, 60000);
 document.addEventListener('visibilitychange', function(){ if (!document.hidden) tickClock(); });
+
+window.addEventListener('afterprint', function(){ document.body.classList.remove('print-route'); });
 
 // --- Welcome screen: once, on a first visit without a deep link ---
 var welcome = $('welcome');
