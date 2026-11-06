@@ -514,7 +514,8 @@
   .route-foot{display:flex;gap:8px;margin-top:4px}
   .stop-num{min-width:30px;height:30px;padding:0 6px;border-radius:15px;display:flex;align-items:center;justify-content:center;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.35);font-weight:800;font-size:12.5px;border:3px solid var(--pin-ring);box-shadow:0 4px 10px rgba(0,0,0,0.5);white-space:nowrap;transition:transform .15s}
   .leaflet-marker-icon:hover .stop-num{transform:scale(1.12)}
-  #map.route-mode .leaflet-marker-pane{opacity:.35}
+  /* On a route only the history pins step back; bus stops and Okolica pins stay readable */
+  #map.route-mode .marker-pin,#map.route-mode .marker-group,#map.route-mode .cluster{opacity:.35}
   .route-bar{display:flex;align-items:center;gap:8px;padding:10px 14px 10px 18px;background:linear-gradient(rgba(0,0,0,0.12),rgba(0,0,0,0.12)),var(--panel);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2;backdrop-filter:blur(6px)}
   .route-bar .rb-list{flex:1;display:flex;align-items:center;gap:10px;background:none;border:none;color:var(--text);text-align:left;font-weight:700;font-size:13.5px;padding:0}
   .route-bar .rb-list small{display:block;color:var(--rc);font-size:12px;font-weight:700;letter-spacing:.3px}
@@ -616,7 +617,7 @@
     .pill button.soon::after{display:none}
     .bottom-bar{bottom:calc(14px + env(safe-area-inset-bottom))}
     .seg{justify-content:flex-start}
-    .panel-inner{padding:16px 18px 20px}
+    .panel-inner{padding:16px 18px calc(20px + env(safe-area-inset-bottom))}
     .gallery{margin:0 0 2px}
   .gallery .main{display:block;width:100%;padding:0;border:none;background:#0f2a31;border-radius:12px;overflow:hidden;cursor:zoom-in;position:relative}
   .gallery .main img{display:block;width:100%;max-height:300px;object-fit:cover;filter:sepia(.08)}
@@ -977,6 +978,10 @@
     var label = this.options.ariaLabel || (this.getChildCount ? 'Skupisko punktów: ' + this.getChildCount() : '');   // getChildCount: a markercluster group
     if (label && this._icon) this._icon.setAttribute('aria-label', label);
   };
+  // Leaflet only turns Enter into a click for markers with a popup; ours open cards instead
+  L.Marker.addInitHook(function(){
+    this.on('keypress', function(e){ if (e.originalEvent && e.originalEvent.keyCode === 13 && !this.getChildCount) this.fire('click', e); });
+  });
   var map = L.map('map', { zoomControl: false, attributionControl: true });
   map.attributionControl.addAttribution('Wersja demonstracyjna · &copy; Tomasz Wrotek, wszelkie prawa zastrzeżone');
   // On narrow screens the attribution wraps; publish its height so the bottom bar can sit above it
@@ -1013,7 +1018,7 @@
   function store(k, v){ try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
   var qs = new URLSearchParams(location.search);
   var baseLayer = null, mapStyle = null, lastNonSat = 'kolorowa';
-  function setMapStyle(key){
+  function setMapStyle(key, persist){
     if (!MAP_STYLES[key]) key = 'kolorowa';
     var st = MAP_STYLES[key];
     if (baseLayer) map.removeLayer(baseLayer);
@@ -1028,14 +1033,14 @@
     $('style-sw').style.background = shown.swatch;
     document.querySelectorAll('#sm-maps button').forEach(function(b){ b.setAttribute('aria-pressed', String(key !== 'satelita' && b.dataset.map === key)); });
     $('sat-btn').setAttribute('aria-pressed', String(key === 'satelita'));
-    store('zbikow-map', key);
+    if (persist !== false){ store('zbikow-map', lastNonSat); store('zbikow-sat', key === 'satelita' ? '1' : '0'); }
   }
-  function setTheme(key){
+  function setTheme(key, persist){
     if (!THEMES[key]) key = 'noc';
     document.documentElement.setAttribute('data-theme', key);
     document.querySelector('meta[name="theme-color"]').setAttribute('content', THEMES[key].meta);
     document.querySelectorAll('#sm-themes button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.theme === key)); });
-    store('zbikow-theme', key);
+    if (persist !== false) store('zbikow-theme', key);
     if (typeof activeRoute !== 'undefined' && activeRoute) drawRoute(activeRoute);
   }
   // Satellite has its own toggle button, so the menu lists only the drawn map styles.
@@ -1064,10 +1069,12 @@
     if (b.dataset.text) setTextSize(b.dataset.text);
   });
   document.addEventListener('click', function(){ toggleStyleMenu(false); });
-  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') toggleStyleMenu(false); });
+  // Esc with the menu open closes only the menu (registered first, so it can stop the sheet handler below)
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && styleMenu.classList.contains('open')){ toggleStyleMenu(false); e.stopImmediatePropagation(); } });
   // First visit: follow the device's light/dark preference; afterwards the chosen theme
   var prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-  setTheme(qs.get('theme') || store('zbikow-theme') || (prefersLight ? 'dzien' : 'noc'));
+  // ?theme= / ?map= in a shared link apply to this visit only; they never overwrite the visitor's own choice
+  if (qs.get('theme')) setTheme(qs.get('theme'), false); else setTheme(store('zbikow-theme') || (prefersLight ? 'dzien' : 'noc'));
   function setTextSize(k){
     k = k === 'big' ? 'big' : 'normal';
     document.documentElement.setAttribute('data-text', k);
@@ -1075,12 +1082,13 @@
     store('zbikow-text', k);
   }
   setTextSize(store('zbikow-text'));
-  setMapStyle(qs.get('map') || store('zbikow-map') || 'kolorowa');
+  lastNonSat = MAP_STYLES[store('zbikow-map')] && store('zbikow-map') !== 'satelita' ? store('zbikow-map') : 'kolorowa';
+  if (qs.get('map')) setMapStyle(qs.get('map'), false); else setMapStyle(store('zbikow-sat') === '1' ? 'satelita' : lastNonSat);
 
   // 1944 aerial overlay (georeferenced in MapWarper), on its own pane so the tile filters
   // above (which only target the base map pane) never touch it.
   map.createPane('pane1944');
-  map.getPane('pane1944').style.zIndex = 450;
+  map.getPane('pane1944').style.zIndex = 350;   // above the base tiles (200), below route/war/bus lines (400)
   var slider = $('opacity-slider');
   var layer1944 = L.tileLayer('https://mapwarper.net/maps/tile/112543/{z}/{x}/{y}.png', {
     pane: 'pane1944', opacity: 1 - parseFloat(slider.value), maxZoom: 19, maxNativeZoom: 17,
@@ -1192,10 +1200,13 @@
 
   // Map centre that keeps a point visible next to the side panel / above the bottom sheet.
   function offsetCenter(ll, z){
+    if (!panel.classList.contains('open')) return ll;
     var pt = map.project(ll, z);
-    pt = bottomSheets() ? pt.add([0, panel.offsetHeight / 2 - 20]) : pt.add([panel.offsetWidth / 2, 0]);
+    pt = bottomSheets() ? pt.add([0, sheetPad(panel) / 2 - 20]) : pt.add([panel.offsetWidth / 2, 0]);
     return map.unproject(pt, z);
   }
+  // Height of a bottom sheet for map padding, capped so an expanded sheet never swallows the whole viewport
+  function sheetPad(el){ return Math.min(el.offsetHeight, Math.round(map.getSize().y * 0.55)); }
   // Run fn once the current map move ends. A newer request replaces an older one: a flyTo cut short by
   // another never fires its own moveend, so the old callback would otherwise act on the wrong marker.
   var pendingMoveEnd = null;
@@ -1211,6 +1222,8 @@
     minZ = minZ || 17;
     var z = Math.max(map.getZoom(), minZ);
     function spread(){
+      // flyTo's own _stop() fires a synchronous moveend while an earlier pan is still running; wait one more
+      if ((map._animatingZoom || map._flyToFrame) && !spread.retried){ spread.retried = true; onMoveEnd(spread); return; }
       if (hasCluster && layer._inZoomAnimation){ layer.once('animationend', spread); return; }
       var parent = hasCluster ? layer.getVisibleParent(m) : m;
       if (parent && parent !== m && parent.spiderfy && layer._spiderfied !== parent){
@@ -1219,8 +1232,8 @@
       } else cb();
     }
     if (m._icon && map.getZoom() >= minZ){ onMoveEnd(null); map.panTo(offsetCenter(m.getLatLng(), z)); cb(); return; }
-    onMoveEnd(spread);
     map.flyTo(offsetCenter(m.getLatLng(), z), z, { duration: 0.5 });
+    onMoveEnd(spread);   // armed after flyTo, so the synchronous moveend of an interrupted move is not consumed
   }
 
   // --- Panel rendering ---
@@ -1336,8 +1349,22 @@
   }
   function showSheet(el){
     [panel, placesList, routesSheet, warSheet, nearSheet].forEach(function(s){ if (s !== el) s.classList.remove('open'); });
+    // A list replacing an open card: the card's state and link go with it
+    if (el !== panel && current){ current = null; setActiveMarker(null); setActiveWar(null); clearExtraActive(); setHash(''); }
     el.classList.add('open');
+    if (el !== nearSheet) hidePoiLayerIfIdle();
     syncBodyState();
+  }
+  // Bus-stop / Okolica markers keep their own highlight; a pending reveal belongs to the card that asked for it
+  var activeBusMk = null, activePoiMk = null, revealSeq = 0;
+  function clearExtraActive(){
+    [activeBusMk, activePoiMk].forEach(function(m){ if (m && m._icon) m._icon.classList.remove('is-active'); });
+    activeBusMk = activePoiMk = null;
+    revealSeq++;
+    onMoveEnd(null);
+  }
+  function hidePoiLayerIfIdle(){
+    if (POI && !nearSheet.classList.contains('open') && !(current && current.kind === 'poi') && map.hasLayer(poiLayer)) map.removeLayer(poiLayer);
   }
   function closeSheets(){
     panel.classList.remove('open');
@@ -1347,7 +1374,10 @@
     nearSheet.classList.remove('open');
     setActiveMarker(null);
     setActiveWar(null);
+    clearExtraActive();
+    if (TRANSIT){ busLineLayer.clearLayers(); busShown = {}; }
     current = null;
+    hidePoiLayerIfIdle();
     setHash('');
     syncBodyState();
   }
@@ -1365,18 +1395,22 @@
     btn1944.hidden = !p;
     current = { place: r.place, item: r.item, kind: r.kind, routeStop: routeStop };
     var wasOpen = panel.classList.contains('open');
+    clearExtraActive();
+    var seq = revealSeq;
     showSheet(panel);
+    panel.focus({ preventScroll: true });
     setHash(orig);
     if (p){
       setActiveMarker(orig);
       // Wait for the sheet to slide in so the offset is measured correctly.
-      setTimeout(function(){ revealMarker(orig, function(){ setActiveMarker(orig); }); }, wasOpen ? 0 : 60);
+      setTimeout(function(){ if (seq === revealSeq) revealMarker(orig, function(){ if (seq === revealSeq) setActiveMarker(orig); }); }, wasOpen ? 0 : 60);
     } else setActiveMarker(null);
     return true;
   }
   // A whole address (e.g. from search): fan its records out on the map.
   function focusGroup(p){
     closeSheets();
+    setHash(p.id, null, 'p');
     var first = p.members[0].origId;
     revealMarker(first, function(){});
     showToast((p.address) + ': ' + p.members.length + ' obiekty — wybierz punkt na mapie.');
@@ -1463,7 +1497,14 @@
   function czGo(d){ if (czSlides.length > 1){ czIndex = (czIndex + d + czSlides.length) % czSlides.length; renderCarousel(); } }
   $('cz-prev').addEventListener('click', function(){ czGo(-1); });
   $('cz-next').addEventListener('click', function(){ czGo(1); });
-  $('cz-thumbs').addEventListener('click', function(e){ var b = e.target.closest('button[data-i]'); if (b){ czIndex = parseInt(b.dataset.i, 10); renderCarousel(); } });
+  $('cz-thumbs').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-i]');
+    if (!b) return;
+    czIndex = parseInt(b.dataset.i, 10);
+    renderCarousel();
+    var cur = $('cz-thumbs').querySelector('[aria-current="true"]');   // the clicked button was rebuilt; keep focus so arrows still work
+    if (cur) cur.focus({ preventScroll: true });
+  });
   $('close-cz').addEventListener('click', function(){ cz.close(); });
   cz.addEventListener('click', function(e){ if (e.target === cz) cz.close(); });
   cz.addEventListener('keydown', function(e){
@@ -1504,22 +1545,25 @@
     var wm = location.hash.match(/[#&]w=(ww1|ww2)/), em = location.hash.match(/[#&]e=([\w-]+)/);
     if (wm && WARS[wm[1]]){
       setMode(wm[1], !!em);
-      if (em) openEventById(wm[1], em[1]);
+      // An event id that no longer exists: behave like a plain #w= link (sheet open, map fitted)
+      if (em && !openEventById(wm[1], em[1])){ openWarSheet(); setTimeout(function(){ fitWar(warState[wm[1]]); }, 300); }
       return true;
     }
     var tm = location.hash.match(/[#&]t=([\w-]+)/), om = location.hash.match(/[#&]o=(\d+)/);
-    if (tm && routeById[tm[1]]){
-      startRoute(tm[1], !!om);
-      if (om) openRecord(parseInt(om[1], 10));
-      return true;
-    }
-    var sm = location.hash.match(/^#(s|poi)=(.+)$/);
-    if (sm){
+    var sm = location.hash.match(/[#&](s|poi)=([^&]+)/);
+    function openExtra(){
+      if (!sm) return false;
       var id = decodeURIComponent(sm[2]);
       if (sm[1] === 's' && stopById[id]){ openBusStop(id); return true; }
       if (sm[1] === 'poi' && poiById[id]){ openPoi(id); return true; }
       return false;
     }
+    if (tm && routeById[tm[1]]){
+      startRoute(tm[1], !!(om || sm));
+      if (om) openRecord(parseInt(om[1], 10)); else openExtra();
+      return true;
+    }
+    if (sm) return openExtra();
     var m = location.hash.match(/^#(o|p)=(.+)$/);
     if (!m) return false;
     if (m[1] === 'o') return openRecord(parseInt(m[2], 10));
@@ -1528,7 +1572,7 @@
     if (p.isGroup) focusGroup(p); else openRecord(p.origId);
     return true;
   }
-  window.addEventListener('hashchange', function(){ if (!hashLock) readHash(); });
+  window.addEventListener('hashchange', function(){ if (!hashLock && !readHash() && !location.hash) closeSheets(); });
 
   $('btn-share').addEventListener('click', function(){
     var url = location.href;
@@ -1570,7 +1614,7 @@
     // Name matches first (prefix before substring), then address/type matches.
     matches = searchIndex.map(function(s){
       var i = s.nLabel.indexOf(q);
-      var score = i === 0 ? 0 : i > 0 ? 1 : s.nRest.indexOf(q) !== -1 ? 2 : -1;
+      var score = s.nLabel === q ? 0 : i === 0 ? 1 : i > 0 ? 2 : s.nRest.indexOf(q) !== -1 ? 3 : -1;
       return { s: s, score: score };
     }).filter(function(x){ return x.score >= 0; })
       .sort(function(a, b){ return a.score - b.score || a.s.label.localeCompare(b.s.label, 'pl'); })
@@ -1610,6 +1654,9 @@
   searchResults.addEventListener('click', function(e){
     var btn = e.target.closest('.search-item');
     if (btn) pick(parseInt(btn.dataset.i, 10));
+  });
+  searchResults.addEventListener('keydown', function(e){
+    if (e.key === 'Escape'){ e.stopPropagation(); closeResults(); searchInput.focus(); }
   });
   document.addEventListener('click', function(e){
     if (!e.target.closest('.search-wrap')) closeResults();
@@ -1656,7 +1703,7 @@
     listFilter = f;
     document.querySelectorAll('.chips button').forEach(function(x){ x.setAttribute('aria-pressed', String(x.dataset.f === f)); });
     renderList();
-    setPressed('zdjecia', f === 'photos' && placesList.classList.contains('open'));
+    syncBodyState();
   }
   document.querySelectorAll('.chips button').forEach(function(b){
     b.addEventListener('click', function(){ setListFilter(b.dataset.f); });
@@ -1684,7 +1731,7 @@
       var layer = btn.dataset.layer;
       if (layer === 'wspolczesna') setMode('modern');
       else if (layer === 'okolica'){
-        if (nearSheet.classList.contains('open')){ nearSheet.classList.remove('open'); syncBodyState(); }
+        if (nearSheet.classList.contains('open')) closeNear();
         else openNear();
       }
       else if (layer === 'ww1' || layer === 'ww2'){
@@ -1796,7 +1843,7 @@
   }
   function fitRoute(r){
     var b = L.latLngBounds(r.geometry);
-    var pad = bottomSheets() ? { paddingTopLeft: [30, 30], paddingBottomRight: [30, routesSheet.offsetHeight + 30] }
+    var pad = bottomSheets() ? { paddingTopLeft: [30, 30], paddingBottomRight: [30, sheetPad(routesSheet) + 30] }
                                : { paddingTopLeft: [50, 50], paddingBottomRight: [routesSheet.offsetWidth + 50, 90] };
     map.fitBounds(b, pad);
   }
@@ -1808,7 +1855,10 @@
     mapEl.classList.add('route-mode');
     drawRoute(r);
     renderRouteDetail(r);
+    routesSheet.classList.remove('expanded');   // the map must stay visible while the route is fitted
     showSheet(routesSheet);
+    clearExtraActive();
+    markNearStops(r);
     routesBody.scrollTop = 0;
     setActiveMarker(null);
     current = null;
@@ -1818,6 +1868,7 @@
   function endRoute(){
     activeRoute = null;
     routeLayer.clearLayers();
+    markNearStops(null);
     mapEl.classList.remove('route-mode');
     stopLocate();
     renderRoutesList();
@@ -1889,9 +1940,12 @@
           if (allBounds.pad(0.5).contains(ll)) map.panTo(ll); else showToast('Jesteś poza Żbikowem — pozycja jest na mapie, ale daleko od tras.');
         }
       }, function(err){
-        showToast(err.code === 1 ? 'Brak zgody na lokalizację — włącz ją w ustawieniach przeglądarki.' : 'Nie udało się ustalić pozycji.');
-        stopLocate();
-        if (activeRoute) renderRouteDetail(activeRoute);
+        // Only a denial ends the watch; "unavailable" and "timeout" are passing and the next fix still arrives
+        if (err.code === 1){
+          showToast('Brak zgody na lokalizację — włącz ją w ustawieniach przeglądarki.');
+          stopLocate();
+          if (activeRoute){ var y = routesBody.scrollTop; renderRouteDetail(activeRoute); routesBody.scrollTop = y; }
+        } else if (!geoMarker) showToast('Nie udało się jeszcze ustalić pozycji — próbuję dalej.');
       }, { enableHighAccuracy: true, maximumAge: 10000 });
     }
     if (btn){ btn.setAttribute('aria-pressed', String(geoWatch != null)); btn.textContent = geoWatch != null ? 'Ukryj moją pozycję' : 'Gdzie jestem?'; }
@@ -1992,7 +2046,9 @@
   // Day-by-day view: an event is active on a day when it falls inside its from–to range.
   // s.day is either a single day ('1914-10-17') or a period { from, to, i, label } (war.phases).
   function rng(day){ return typeof day === 'string' ? { from: day, to: day } : day; }
-  function activeOn(e, day){ if (!day) return true; var r = rng(day); return !!(e.ev.from && e.ev.from <= r.to && (e.ev.to || e.ev.from) >= r.from); }
+  // Events without a from/to range count on the single day their `sort` names (YYYY-MM-DD); month-only dates never match a day.
+  function evFrom(e){ return e.ev.from || (String(e.ev.sort || '').length === 10 ? e.ev.sort : null); }
+  function activeOn(e, day){ if (!day) return true; var r = rng(day), f = evFrom(e); return !!(f && f <= r.to && (e.ev.to || f) >= r.from); }
   function dayLabel(iso){
     var m = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
     var p = iso.split('-');
@@ -2161,7 +2217,7 @@
     var open = [warSheet, panel].filter(function(x){ return x.classList.contains('open'); })[0];
     var top = mobileMQ.matches ? (($('war-chip').offsetHeight || 0) + 80) : 80;
     var bottom = ($('war-time').offsetHeight || 0) + 90;
-    var pad = bottomSheets() ? { paddingTopLeft: [30, top], paddingBottomRight: [30, (open ? open.offsetHeight + 30 : bottom)] }
+    var pad = bottomSheets() ? { paddingTopLeft: [30, top], paddingBottomRight: [30, (open ? sheetPad(open) + 30 : bottom)] }
                              : { paddingTopLeft: [mobileMQ.matches ? 20 : 60, mobileMQ.matches ? top - 40 : 80], paddingBottomRight: [(open ? open.offsetWidth : 0) + (mobileMQ.matches ? 20 : 60), bottom] };
     map.fitBounds(L.latLngBounds(s.bounds), pad);
   }
@@ -2231,13 +2287,20 @@
   }
   // One place that changes the selected day / period: map, sheet, chip and scrubber stay in sync.
   var fitTimer;
+  // Re-render the sheet without losing the keyboard focus (the focused button is rebuilt)
+  function rerenderWarSheet(s){
+    var a = document.activeElement, sel = a && warBody.contains(a) && a.dataset ? ['day', 'phase', 'wtype'].map(function(k){ return a.dataset[k] != null ? '[data-' + k + '="' + a.dataset[k] + '"]' : null; }).filter(Boolean)[0] : null;
+    var y = warBody.scrollTop;
+    renderWarSheet(s);
+    warBody.scrollTop = y;
+    var again = sel && warBody.querySelector(sel);
+    if (again) again.focus({ preventScroll: true });
+  }
   function setWarDay(s, day, fitNow){
     s.day = day;
     applyWarFilter(s);
     if (warSheet.classList.contains('open')){
-      var y = warBody.scrollTop;
-      renderWarSheet(s);
-      warBody.scrollTop = y;
+      rerenderWarSheet(s);
       var sel = warBody.querySelector('.days button[aria-pressed="true"]');
       if (sel){ var strip = sel.parentNode; strip.scrollLeft = sel.offsetLeft - strip.offsetLeft - strip.clientWidth / 2 + sel.offsetWidth / 2; }
     }
@@ -2274,9 +2337,11 @@
     mapEl.classList.toggle('war-mode', m !== 'modern');
     document.body.classList.toggle('war-on', m !== 'modern');
     if (m !== 'modern'){
-      if (TRANSIT){ map.removeLayer(busLayer); busLineLayer.clearLayers(); busShown = {}; }
+      if (TRANSIT){ map.removeLayer(busLayer); busLineLayer.clearLayers(); busShown = {}; $('bus-btn').setAttribute('aria-pressed', 'false'); }
       if (POI){ map.removeLayer(poiLayer); nearSheet.classList.remove('open'); }
-    } else if (TRANSIT && store('zbikow-bus') === '1') busLayer.addTo(map);
+    } else if (TRANSIT && store('zbikow-bus') === '1'){ busLayer.addTo(map); $('bus-btn').setAttribute('aria-pressed', 'true'); }
+    clearExtraActive();
+    clearTimeout(fitTimer);
     var cart = $('war-cartouche');
     cart.hidden = m === 'modern';
     $('war-compass').toggleAttribute('hidden', m === 'modern');
@@ -2305,8 +2370,9 @@
     hatchAreas(s);
     syncWarChip();
     syncWarTime();
-    if (current && current.kind !== 'event'){ panel.classList.remove('open'); current = null; }
-    if (!quiet){ openWarSheet(); setTimeout(function(){ fitWar(s); }, 60); }
+    if (current && (current.kind !== 'event' || current.warKey !== m)){ panel.classList.remove('open'); current = null; }
+    // The sheet animates its height for 250 ms; measuring it earlier pads the map with a half-open sheet
+    if (!quiet){ openWarSheet(); setTimeout(function(){ if (mode === m) fitWar(s.day ? { bounds: warPoints(s) } : s); }, 300); }
     else syncBodyState();
     setHash('');
   }
@@ -2418,7 +2484,7 @@
       var t = tb.dataset.wtype;
       s.filter[t] = s.filter[t] === false;
       applyWarFilter(s);
-      renderWarSheet(s);
+      rerenderWarSheet(s);
       syncWarChip();
       syncWarTime();
       return;
@@ -2447,8 +2513,10 @@
 
   function openEvent(key, i){
     var s = buildWar(key), e = s.events[i];
-    if (!e) return;
+    if (!e) return false;
     if (mode !== key) setMode(key, true);
+    clearTimeout(fitTimer);
+    clearExtraActive();
     var ty = warType(e.ev.type);
     galleryLists = [];
     $('panel-kicker').textContent = s.war.label + ' · ' + s.war.period;
@@ -2467,15 +2535,17 @@
     current = { place: e.place, item: e.item, kind: 'event', warKey: key, warIndex: i };
     var wasOpen = panel.classList.contains('open');
     showSheet(panel);
+    panel.focus({ preventScroll: true });
     setHash('', e.ev.id);
     var mk = s.markers[e.ev.id] || null;
     // Opening an event outside the selected day/period clears that filter so the event is visible.
     if (s.day && !activeOn(e, s.day)){ s.day = null; applyWarFilter(s); syncWarChip(); syncWarTime(); }
     setActiveWar(mk);
     if (mk){
-      if (s.filter[e.ev.type] === false){ s.filter[e.ev.type] = true; applyWarFilter(s); }
+      if (s.filter[e.ev.type] === false){ s.filter[e.ev.type] = true; applyWarFilter(s); syncWarChip(); syncWarTime(); }
       setTimeout(function(){ revealIn(s.layer, mk, function(){ setActiveWar(mk); }, 15); }, wasOpen ? 0 : 60);
     }
+    return true;
   }
   function openEventById(key, id){
     var s = buildWar(key);
@@ -2532,6 +2602,7 @@
   function dayType(dt){ return dt.getDay() === 0 || isHoliday(dt) ? 'su' : dt.getDay() === 6 ? 'sa' : 'wd'; }
   var DAY_LABEL = { wd: 'dzień roboczy', sa: 'sobota', su: 'niedziela i święta' };
   function hm(m){ m = m % 1440; return Math.floor(m / 60) + ':' + ('0' + (m % 60)).slice(-2); }
+  function hmEnd(m){ return m === 1440 ? '24:00' : hm(m); }   // a closing time of midnight reads "24:00", not "0:00"
   function lineOf(key){ return key.split('|')[0]; }
   function lnChip(rk, pressed){
     var r = TRANSIT.routes[rk] || { n: rk, c: '#555', op: '' };
@@ -2613,13 +2684,19 @@
     });
     return pts;
   }
-  var activeBusMk = null;
+  function depsHTML(st){
+    var deps = nextDeps(st, 10), t = dayType(warsawNow());
+    return '<div class="section-label">Najbliższe odjazdy · ' + DAY_LABEL[t] + '</div>' +
+      (deps.length ? '<ul class="deps">' + deps.map(function(d){
+        return '<li><b>' + hm(d.t) + '</b>' + lnChip(lineOf(d.k)) + '<span class="to">→ ' + esc(d.k.split('|')[1] || '') + '</span><span class="in">' + waitLabel(d) + '</span></li>';
+      }).join('') + '</ul>' : '<p class="list-empty">Brak odjazdów w rozkładzie.</p>');
+  }
   function openBusStop(id){
     var st = stopById[id];
     if (!st) return;
     if (mode !== 'modern') setMode('modern', true);
     if (!map.hasLayer(busLayer)) setBus(true, true);
-    var t = dayType(warsawNow()), deps = nextDeps(st, 10);
+    var t = dayType(warsawNow());
     var byDir = Object.keys(st.d).map(function(k){
       var times = st.d[k][t] || [], hours = {};
       times.forEach(function(x){ var h = Math.floor(x / 60); (hours[h] = hours[h] || []).push(('0' + (x % 60)).slice(-2)); });   // after-midnight runs stay at the end
@@ -2635,10 +2712,7 @@
       '<div><div class="section-label">Linie · kliknij, aby pokazać przebieg na mapie</div><div class="ln-row">' +
         stopLines(st).map(function(l){ return lnChip(l, !!busShown[l]); }).join('') + '</div></div>' +
       transitValidity() +
-      '<div><div class="section-label">Najbliższe odjazdy · ' + DAY_LABEL[t] + '</div>' +
-        (deps.length ? '<ul class="deps">' + deps.map(function(d){
-          return '<li><b>' + hm(d.t) + '</b>' + lnChip(lineOf(d.k)) + '<span class="to">→ ' + esc(d.k.split('|')[1] || '') + '</span><span class="in">' + waitLabel(d) + '</span></li>';
-        }).join('') + '</ul>' : '<p class="list-empty">Brak odjazdów w rozkładzie.</p>') + '</div>' +
+      '<div id="deps-box">' + depsHTML(st) + '</div>' +
       '<div><div class="section-label">Rozkład na dziś (' + DAY_LABEL[t] + ')</div>' + byDir + '</div>' +
       transitNote() +
       '</div>';
@@ -2648,13 +2722,16 @@
     setHash(id, null, 's');
     var wasOpen = panel.classList.contains('open');
     showSheet(panel);
+    panel.focus({ preventScroll: true });
     setActiveMarker(null);
-    if (activeBusMk && activeBusMk._icon) activeBusMk._icon.classList.remove('is-active');
+    clearExtraActive();
     activeBusMk = busMarkers[id];
+    var seq = revealSeq;
     setTimeout(function(){
+      if (seq !== revealSeq) return;
       var ll = L.latLng(st.lat, st.lng), z = Math.max(map.getZoom(), 16);
       map.flyTo(offsetCenter(ll, z), z, { duration: 0.5 });
-      onMoveEnd(function(){ if (activeBusMk && activeBusMk._icon) activeBusMk._icon.classList.add('is-active'); });
+      onMoveEnd(function(){ if (seq === revealSeq && activeBusMk && activeBusMk._icon) activeBusMk._icon.classList.add('is-active'); });
     }, wasOpen ? 0 : 60);
   }
   panelBody.addEventListener('click', function(e){
@@ -2663,7 +2740,7 @@
       var on = b.getAttribute('aria-pressed') !== 'true';
       b.setAttribute('aria-pressed', String(on));
       var pts = drawBusLine(b.dataset.line, on);
-      if (on && pts.length) map.fitBounds(L.latLngBounds(pts), bottomSheets() ? { paddingTopLeft: [30, 80], paddingBottomRight: [30, panel.offsetHeight + 30] } : { paddingTopLeft: [60, 80], paddingBottomRight: [panel.offsetWidth + 60, 100] });
+      if (on && pts.length) map.fitBounds(L.latLngBounds(pts), bottomSheets() ? { paddingTopLeft: [30, 80], paddingBottomRight: [30, sheetPad(panel) + 30] } : { paddingTopLeft: [60, 80], paddingBottomRight: [panel.offsetWidth + 60, 100] });
       return;
     }
     var sb = e.target.closest('[data-busstop]');
@@ -2691,6 +2768,17 @@
         (dep.length ? '<span class="bn-next">Najbliższe: ' + dep.map(function(d){ return '<b>' + hm(d.t) + '</b> ' + esc(TRANSIT.routes[lineOf(d.k)].n) + (d.tomorrow ? ' (jutro)' : ''); }).join(' · ') + '</span>' : '') +
         '</button></li>';
     }).join('') + '</ul>';
+  }
+  // Stops listed under "Dojazd autobusem" get a highlighted icon while the route is active
+  var nearStopIds = [];
+  function markNearStops(r){
+    if (!TRANSIT) return;
+    nearStopIds.forEach(function(id){ if (busMarkers[id]){ busMarkers[id].setIcon(busIcon(false)); if (busMarkers[id] === activeBusMk && activeBusMk._icon) activeBusMk._icon.classList.add('is-active'); } });
+    nearStopIds = [];
+    if (!r || !r.stops.length) return;
+    var a = recLatLng(r.stops[0]), z = recLatLng(r.stops[r.stops.length - 1]);
+    if (!a) return;
+    nearStops(a, 600, 3).concat(z && a.distanceTo(z) > 400 ? nearStops(z, 600, 2) : []).forEach(function(x){ nearStopIds.push(x.st.id); busMarkers[x.st.id].setIcon(busIcon(true)); });
   }
   var busSvgInline = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5BA4F0" stroke-width="2.4" style="vertical-align:-2px" aria-hidden="true"><rect x="4" y="3" width="16" height="15" rx="3"/><path d="M4 11h16M8 21v-3M16 21v-3"/></svg>';
   function transitRouteHTML(r){
@@ -2724,20 +2812,24 @@
   var nearState = { cat: 'kultura', openOnly: false, from: null };
   var DAYS_PL = ['poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota', 'niedziela'];
   // Opening state from the weekly plan baked by the importer (minutes, Monday first; PH = Polish holidays).
+  // Grocery shops without explicit holiday (PH) hours in OSM: Polish law closes them on public holidays,
+  // so the weekday plan must not be assumed. Pharmacies, stations and cafés keep the weekday fallback.
   function dayPlan(p, dt){
     if (!p.h) return null;
-    return (isHoliday(dt) && p.h.ph) ? p.h.ph : p.h.w[(dt.getDay() + 6) % 7];
+    if (isHoliday(dt)){ if (p.h.ph) return p.h.ph; if (p.c === 'spozywcze') return []; }
+    return p.h.w[(dt.getDay() + 6) % 7];
   }
   function ohState(p, now){
     if (!p.h) return { k: 'unk', t: p.oh ? 'godziny: ' + p.oh : 'brak godzin w OSM' };
     now = now || warsawNow();
     var m = now.getHours() * 60 + now.getMinutes(), today = dayPlan(p, now) || [];
     var y = addDays(now, -1), yest = dayPlan(p, y) || [];
-    for (var i = 0; i < yest.length; i++) if (yest[i][1] > 1440 && m + 1440 < yest[i][1]) return { k: 'open', t: 'otwarte do ' + hm(yest[i][1]) };
+    for (var i = 0; i < yest.length; i++) if (yest[i][1] > 1440 && m + 1440 < yest[i][1]) return { k: 'open', t: 'otwarte do ' + hmEnd(yest[i][1]) };
     for (i = 0; i < today.length; i++) if (m >= today[i][0] && m < today[i][1]) {
       if (today[i][0] === 0 && today[i][1] >= 1440) return { k: 'open', t: 'otwarte całą dobę' };
-      return { k: 'open', t: 'otwarte do ' + hm(today[i][1]) + (today[i][1] - m <= 30 ? ' (zaraz zamykają)' : '') };
+      return { k: 'open', t: 'otwarte do ' + hmEnd(today[i][1]) + (today[i][1] - m <= 30 ? ' (zaraz zamykają)' : '') };
     }
+    if (isHoliday(now) && !p.h.ph && p.c === 'spozywcze') return { k: 'closed', t: 'święto · sklep zamknięty (brak godzin świątecznych w OSM)' };
     for (i = 0; i < today.length; i++) if (today[i][0] > m) return { k: 'closed', t: 'zamknięte · otwierają o ' + hm(today[i][0]) };
     for (var d = 1; d <= 7; d++){
       var dt = addDays(now, d), pl = dayPlan(p, dt) || [];
@@ -2775,6 +2867,12 @@
       poiMarkers[p.id].setIcon(poiIcon(p, st));
       poiLayer.addLayer(poiMarkers[p.id]);
     });
+    // The place whose card is open stays on the map and highlighted (setIcon rebuilds the icon element)
+    if (current && current.kind === 'poi' && poiMarkers[current.poiId]){
+      var am = poiMarkers[current.poiId];
+      if (!poiLayer.hasLayer(am)) poiLayer.addLayer(am);
+      if (am._icon) am._icon.classList.add('is-active');
+    }
     if (!map.hasLayer(poiLayer)) poiLayer.addTo(map);
   }
   function nearestOpen(cat){
@@ -2842,24 +2940,32 @@
   nearBody.addEventListener('change', function(e){
     if (e.target.id === 'near-open'){ nearState.openOnly = e.target.checked; renderNear(); showPoiLayer(); }
   });
-  $('close-near').addEventListener('click', function(){ nearSheet.classList.remove('open'); syncBodyState(); });
+  function closeNear(){ nearSheet.classList.remove('open'); syncBodyState(); hidePoiLayerIfIdle(); }
+  $('close-near').addEventListener('click', closeNear);
+  // "od środka mapy": the list follows the map
+  var nearMoveTimer;
+  map.on('moveend', function(){
+    if (!nearSheet.classList.contains('open') || nearState.from || geoMarker) return;
+    clearTimeout(nearMoveTimer);
+    nearMoveTimer = setTimeout(function(){ var y = nearBody.scrollTop; renderNear(); nearBody.scrollTop = y; }, 250);
+  });
   // A place with history within ~50 m of a POI (e.g. Muzeum Dulag 121 ↔ Dulag 121 records).
   function historyNear(p){
     var ll = L.latLng(p.lat, p.lng), best = null;
     PLACES.forEach(function(pl){ var d = ll.distanceTo([pl.lat, pl.lng]); if (d < 60 && (!best || d < best.d)) best = { pl: pl, d: d }; });
     return best && best.pl;
   }
-  var activePoiMk = null;
   function openPoi(id){
     var p = poiById[id];
     if (!p) return;
     if (!map.hasLayer(poiLayer) || nearState.cat !== p.c){ nearState.cat = p.c; showPoiLayer(); }
     if (!poiLayer.hasLayer(poiMarkers[id])) poiLayer.addLayer(poiMarkers[id]);
-    var st = ohState(p), now = warsawNow(), ti = (now.getDay() + 6) % 7, cc = POI_CAT[p.c];
+    var st = ohState(p), now = warsawNow(), cc = POI_CAT[p.c];
+    var phToday = isHoliday(now) && !!(p.h && p.h.ph), ti = phToday ? -1 : (now.getDay() + 6) % 7;
+    function ivText(iv){ return iv.length ? iv.map(function(x){ return hm(x[0]) + '–' + hmEnd(x[1]); }).join(', ') : 'zamknięte'; }
     var table = p.h ? '<div class="oh-table">' + DAYS_PL.map(function(dn, i){
-      var iv = p.h.w[i];
-      return '<span' + (i === ti ? ' class="today"' : '') + '>' + dn + '</span><span' + (i === ti ? ' class="today"' : '') + '>' + (iv.length ? iv.map(function(x){ return hm(x[0]) + '–' + (x[1] >= 1440 && x[0] === 0 ? '24:00' : hm(x[1])); }).join(', ') : 'zamknięte') + '</span>';
-    }).join('') + (p.h.ph ? '<span>święta</span><span>' + (p.h.ph.length ? p.h.ph.map(function(x){ return hm(x[0]) + '–' + hm(x[1]); }).join(', ') : 'zamknięte') + '</span>' : '') + '</div>'
+      return '<span' + (i === ti ? ' class="today"' : '') + '>' + dn + '</span><span' + (i === ti ? ' class="today"' : '') + '>' + ivText(p.h.w[i]) + '</span>';
+    }).join('') + (p.h.ph ? '<span' + (phToday ? ' class="today"' : '') + '>święta</span><span' + (phToday ? ' class="today"' : '') + '>' + ivText(p.h.ph) + '</span>' : '') + '</div>'
       : '<p class="bus-note">' + (p.oh ? 'Godziny w OSM: ' + esc(p.oh) : 'Brak godzin otwarcia w OpenStreetMap.') + '</p>';
     var hist = historyNear(p), histRec = hist ? (hist.isGroup ? hist.members[0] : hist) : null;
     galleryLists = [];
@@ -2881,13 +2987,16 @@
     setHash(id, null, 'poi');
     var wasOpen = panel.classList.contains('open');
     showSheet(panel);
+    panel.focus({ preventScroll: true });
     setActiveMarker(null);
-    if (activePoiMk && activePoiMk._icon) activePoiMk._icon.classList.remove('is-active');
+    clearExtraActive();
     activePoiMk = poiMarkers[id];
+    var seq = revealSeq;
     setTimeout(function(){
+      if (seq !== revealSeq) return;
       var ll = L.latLng(p.lat, p.lng), z = Math.max(map.getZoom(), 16);
       map.flyTo(offsetCenter(ll, z), z, { duration: 0.5 });
-      onMoveEnd(function(){ if (activePoiMk && activePoiMk._icon) activePoiMk._icon.classList.add('is-active'); });
+      onMoveEnd(function(){ if (seq === revealSeq && activePoiMk && activePoiMk._icon) activePoiMk._icon.classList.add('is-active'); });
     }, wasOpen ? 0 : 60);
   }
   if (POI) POI.items.forEach(function(p){
@@ -2909,12 +3018,14 @@
   // --- Keyboard & map interactions ---
   document.addEventListener('keydown', function(e){
     var typing = /INPUT|TEXTAREA/.test(document.activeElement.tagName);
-    if (cz.open) return;
+    if (cz.open || welcome.open) return;
     if (e.key === '/' && !typing && !info.open){ e.preventDefault(); searchInput.focus(); }
     else if (e.key === 'Escape' && !info.open){
+      var lf = $('list-filter');
+      if (document.activeElement === lf && lf.value){ lf.value = ''; lf.dispatchEvent(new Event('input')); return; }   // first Esc clears the filter
       if (routesSheet.classList.contains('open')){ routesSheet.classList.remove('open'); syncBodyState(); }
       else if (warSheet.classList.contains('open')) closeWarSheet();
-      else if (nearSheet.classList.contains('open')){ nearSheet.classList.remove('open'); syncBodyState(); }
+      else if (nearSheet.classList.contains('open')) closeNear();
       else if (panel.classList.contains('open')) closeSheets();
       else if (placesList.classList.contains('open')){ placesList.classList.remove('open'); syncBodyState(); }
     }
@@ -2934,6 +3045,7 @@
       var dy = e.changedTouches[0].clientY - y0;
       y0 = null;
       if (e.target.closest('button')) return;
+      if (!bottomSheets()){ if (dy > 60) shut(); return; }   // side sheets (landscape, tablets) have no expanded state
       if (dy < -40) sheet.classList.add('expanded');
       else if (dy > 60){ if (sheet.classList.contains('expanded')) sheet.classList.remove('expanded'); else shut(); }
       else if (Math.abs(dy) < 8) sheet.classList.toggle('expanded');
@@ -2941,6 +3053,21 @@
     var grab = sheet.querySelector('.grabber');
     if (grab) grab.addEventListener('click', function(){ sheet.classList.toggle('expanded'); });
   });
+
+  // --- Clock: what is shown as "za 5 min" / "otwarte do" must not freeze at the moment it was drawn ---
+  function tickClock(){
+    if (document.hidden) return;
+    if (current && current.kind === 'stop' && panel.classList.contains('open')){
+      var box = $('deps-box'), st = stopById[current.stopId];
+      if (box && st) box.innerHTML = depsHTML(st);
+    }
+    if (POI && mode === 'modern'){
+      if (nearSheet.classList.contains('open')){ var y = nearBody.scrollTop; renderNear(); nearBody.scrollTop = y; }
+      if (map.hasLayer(poiLayer)) showPoiLayer();
+    }
+  }
+  setInterval(tickClock, 60000);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) tickClock(); });
 
   // --- Welcome screen: once, on a first visit without a deep link ---
   var welcome = $('welcome');
@@ -2959,6 +3086,7 @@
   });
   $('show-welcome').addEventListener('click', function(){ if (info.open) info.close(); openWelcome(); });
 
+  document.querySelector('.skip-link').addEventListener('click', function(e){ e.preventDefault(); $('view-bar').focus(); });
   var deepLinked = readHash();
   if (!deepLinked && !location.hash && store('zbikow-welcome') !== '1') openWelcome();
 })();
