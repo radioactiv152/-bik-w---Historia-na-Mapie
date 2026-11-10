@@ -97,12 +97,30 @@ def fetch(bbox):
     raise SystemExit('Overpass niedostępny: %s' % last)
 
 
+def write_atomic(path, text):
+    # Write next to the target and rename, so a crash mid-write never leaves a truncated data file
+    tmp = path + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        f.write(text)
+    os.replace(tmp, path)
+
+
+def previous_count():
+    try:
+        s = open(os.path.join(ROOT, 'data', 'poi.js'), encoding='utf-8').read()
+        return len(json.loads(s[s.index('= {') + 2:s.rstrip().rstrip(';').rindex('}') + 1])['items'])
+    except Exception:
+        return 0
+
+
 def main():
-    raw = json.load(open(sys.argv[sys.argv.index('--raw') + 1])) if '--raw' in sys.argv else fetch(places_bbox())
+    raw = json.load(open(sys.argv[sys.argv.index('--raw') + 1], encoding='utf-8')) if '--raw' in sys.argv else fetch(places_bbox())
+    if raw.get('remark'):   # Overpass reports timeouts as HTTP 200 with a partial result and a remark
+        sys.exit('Overpass: %s — zostawiam poprzedni data/poi.js' % raw['remark'])
     out, unparsed = [], 0
     for e in raw['elements']:
         t = e.get('tags', {})
-        kind = t.get('amenity') or t.get('tourism') or t.get('shop')
+        kind = next((t[k] for k in ('amenity', 'tourism', 'shop') if t.get(k) in SUB), None)
         if kind not in SUB: continue
         cat, sub = SUB[kind]
         name = t.get('name') or t.get('brand')
@@ -125,8 +143,9 @@ def main():
         if kind == 'fuel' and t.get('fuel:lpg') == 'yes': p['lpg'] = 1
         out.append(p)
     out.sort(key=lambda p: (p['c'], p['n']))
-    if len(out) < 20:
-        sys.exit('Za mało miejsc (%d) — zostawiam poprzedni data/poi.js' % len(out))
+    prev = previous_count()
+    if len(out) < 20 or len(out) < 0.7 * prev:
+        sys.exit('Za mało miejsc (%d, poprzednio %d) — zostawiam poprzedni data/poi.js' % (len(out), prev))
     data = {'updated': datetime.date.today().isoformat(), 'cats': CATS, 'items': out,
             'source': 'OpenStreetMap (ODbL), przez Overpass API'}
     head = ('/* Żbików — Historia na mapie: poi.js (wygenerowane przez tools/import_poi.py — nie edytuj ręcznie)\n'
@@ -134,7 +153,7 @@ def main():
             ' * items: [{id, n, c (kategoria), s (rodzaj), lat, lng, a (adres), oh (opening_hours z OSM),\n'
             ' *          h: {w: [[[od,do] w minutach]… 7 dni od poniedziałku], ph: godziny w święta | null}, tel, www}] */\n')
     js = head + 'window.ZBIKOW = window.ZBIKOW || {};\nwindow.ZBIKOW.poi = ' + json.dumps(data, ensure_ascii=False, separators=(',', ':')) + ';\n'
-    open(os.path.join(ROOT, 'data', 'poi.js'), 'w', encoding='utf-8').write(js)
+    write_atomic(os.path.join(ROOT, 'data', 'poi.js'), js)
     from collections import Counter
     print('items', len(out), dict(Counter(p['c'] for p in out)), 'with hours', sum(1 for p in out if 'h' in p), 'unparsed', unparsed, 'bytes', len(js))
 

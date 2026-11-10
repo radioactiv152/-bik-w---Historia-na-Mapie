@@ -1,0 +1,7 @@
+{
+  "name": "zbikow-tests",
+  "private": true,
+  "description": "Testy przeglądarkowe strony (Playwright). Uruchom: npm ci && npx playwright install chromium && npx playwright test",
+  "scripts": { "test": "playwright test" },
+  "devDependencies": { "@playwright/test": "1.56.1", "axe-core": "4.10.2" }
+}

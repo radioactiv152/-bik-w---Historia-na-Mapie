@@ -14,10 +14,32 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
+  # Testy Playwright (tests/): każdy push, przed publikacją
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+        working-directory: tests
+      - run: npx playwright install --with-deps chromium
+        working-directory: tests
+      - run: npx playwright test
+        working-directory: tests
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: tests/playwright-report
+          retention-days: 7
+
   deploy:
+    needs: test
     # Publikuj tylko z domyślnej gałęzi repozytorium
     if: github.event_name == 'schedule' || github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
@@ -38,7 +60,7 @@ jobs:
       - name: Przygotuj pliki strony
         run: |
           mkdir -p _site
-          cp -r index.html .nojekyll img data _site/
+          cp -r index.html .nojekyll sw.js img data css fonts js _site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

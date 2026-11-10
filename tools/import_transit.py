@@ -117,6 +117,14 @@ def clip_runs(pts, box):
     return [r for r in runs if len(r) > 1]
 
 
+def write_atomic(path, text):
+    # Write next to the target and rename, so a crash mid-write never leaves a truncated data file
+    tmp = path + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        f.write(text)
+    os.replace(tmp, path)
+
+
 def mins(t):
     h, m, *_ = t.split(':'); return int(h) * 60 + int(m)
 
@@ -130,8 +138,8 @@ def main():
     for prefix, op, url, label in FEEDS:
         files = read_feed(url, os.path.join(local, os.path.basename(url)[:-4]) if local else None)
         info = (rows(files, 'feed_info.txt') or [{}])[0]
-        start = datetime.datetime.strptime(info.get('feed_start_date', datetime.date.today().strftime('%Y%m%d')), '%Y%m%d').date()
-        end = datetime.datetime.strptime(info.get('feed_end_date', (datetime.date.today() + datetime.timedelta(90)).strftime('%Y%m%d')), '%Y%m%d').date()
+        start = datetime.datetime.strptime(info.get('feed_start_date') or datetime.date.today().strftime('%Y%m%d'), '%Y%m%d').date()
+        end = datetime.datetime.strptime(info.get('feed_end_date') or (datetime.date.today() + datetime.timedelta(90)).strftime('%Y%m%d'), '%Y%m%d').date()
         valid_from = max(valid_from or start, start); valid_to = min(valid_to or end, end)
         sources.append({'name': label, 'via': 'zbiorkom.live', 'url': url, 'version': info.get('feed_version', '')})
         days = sample_days(start, end); days_used = {k: v.isoformat() for k, v in days.items()}
@@ -150,10 +158,12 @@ def main():
             if r['stop_id'] not in near: continue
             tr = trips.get(r['trip_id'])
             if not tr or int(r['stop_sequence']) == last_seq[r['trip_id']]: continue   # no departures at the terminus
+            when = r['departure_time'] or r['arrival_time']
+            if not when: continue   # GTFS allows blank times at non-timepoint stops
             key = (tr['route_id'], tr.get('trip_headsign', '').strip())
             for k, ids in svc.items():
                 if tr['service_id'] in ids:
-                    dep[r['stop_id']][key][k].add(mins(r['departure_time'] or r['arrival_time']))
+                    dep[r['stop_id']][key][k].add(mins(when))
             used_routes.add(tr['route_id'])
             if tr.get('shape_id'): shape_count[(tr['route_id'], tr.get('direction_id', ''), tr['shape_id'])] += 1
         for rid in used_routes:
@@ -211,7 +221,7 @@ def main():
     js = head + 'window.ZBIKOW = window.ZBIKOW || {};\nwindow.ZBIKOW.transit = ' + json.dumps(data, ensure_ascii=False, separators=(',', ':')) + ';\n'
     if len(out_stops) < 10 or len(routes) < 3:
         sys.exit('Za mało danych (%d przystanków, %d linii) — zostawiam poprzedni data/transit.js' % (len(out_stops), len(routes)))
-    open(os.path.join(ROOT, 'data', 'transit.js'), 'w', encoding='utf-8').write(js)
+    write_atomic(os.path.join(ROOT, 'data', 'transit.js'), js)
     print('routes', len(routes), 'stops', len(out_stops), 'shapes', len(shapes), 'bytes', len(js), 'valid', valid_from, '–', valid_to, days_used)
 
 
